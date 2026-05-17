@@ -5,14 +5,12 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
-  // On injecte Prisma ici pour y avoir accès dans tout le fichier
   constructor(private prisma: PrismaService) {}
 
   create(createUserDto: CreateUserDto) {
     return 'Cette action ajoute un nouvel utilisateur';
   }
 
-  // On modifie cette fonction pour aller chercher les vrais utilisateurs sur Supabase !
   async findAll() {
     return this.prisma.utilisateur.findMany();
   }
