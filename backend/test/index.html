@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inexia-Connect - Démo Frontend</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 40px auto;
+            max-width: 800px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        button {
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #004494;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #0056b3;
+            color: white;
+        }
+        .message { margin-top: 15px; font-weight: bold; }
+        .error { color: #d9534f; }
+        .success { color: #5cb85c; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Interface Démo - Inexia-Connect</h1>
+        <button id="loadUsersBtn">Charger les collaborateurs</button>
+        <div id="message" class="message"></div>
+    </div>
+
+    <table id="usersTable" style="display: none;">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody id="usersBody">
+            <!-- Les utilisateurs apparaitront ici -->
+        </tbody>
+    </table>
+
+    <script>
+        document.getElementById('loadUsersBtn').addEventListener('click', async () => {
+            const messageEl = document.getElementById('message');
+            const tableEl = document.getElementById('usersTable');
+            const tbodyEl = document.getElementById('usersBody');
+
+            messageEl.textContent = "Appel de l'API en cours...";
+            messageEl.className = "message";
+            
+            try {
+                // Appel de ton backend NestJS (assure-toi qu'il tourne sur le port 3000)
+                const response = await fetch('http://localhost:3000/users');
+                
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+
+                const users = await response.json();
+                
+                // On vide le tableau avant de le remplir
+                tbodyEl.innerHTML = ""; 
+                
+                users.forEach(user => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${user.id}</td>
+                        <td>${user.nom || 'N/A'}</td>
+                        <td>${user.email}</td>
+                    `;
+                    tbodyEl.appendChild(tr);
+                });
+
+                tableEl.style.display = "table";
+                messageEl.textContent = `${users.length} collaborateurs récupérés depuis la base de données.`;
+                messageEl.className = "message success";
+            } catch (error) {
+                messageEl.textContent = "Erreur de connexion. Le backend est-il bien lancé (port 3000) et CORS est-il activé ?";
+                messageEl.className = "message error";
+                console.error("Détail de l'erreur :", error);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -7,9 +7,9 @@ export declare class UsersService {
     create(createUserDto: CreateUserDto): string;
     findAll(): Promise<{
         id: number;
+        email: string;
         nom: string;
         prenom: string;
-        email: string;
         mot_de_passe: string;
         role: string;
     }[]>;
