@@ -1,9 +1,7 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
-// 1. Configuration de la source de données (Lien vers Supabase)
+// 1. Configuration de la source de données
 
 datasource db {
   provider = "postgresql"
@@ -20,55 +18,41 @@ model Utilisateur {
   nom          String
   prenom       String
   email        String        @unique
-  mot_de_passe String
-  role         String        @default("collaborateur") // collaborateur, admin, directeur
+  motDePasse   String
+  role         String        // 'ADMIN', 'COLLABORATEUR', 'DIRECTEUR'
   reservations Reservation[]
 }
 
 model Site {
-  id       Int      @id @default(autoincrement())
-  nom_site String
-  ville    String
-  adresse  String
-  salles   Salle[]
+  id     Int     @id @default(autoincrement())
+  nom    String
+  ville  String
+  salles Salle[]
 }
 
 model Salle {
   id           Int           @id @default(autoincrement())
-  nom_salle    String
-  etage        Int
-  type         String        // ex: "Réunion", "Bureau"
+  nom          String
   capacite     Int
-  
-  // Relation avec le Site (Une salle appartient à un site)
-  site         Site          @relation(fields: [id_site], references: [id])
-  id_site      Int
-  
+  siteId       Int
+  site         Site          @relation(fields: [siteId], references: [id])
+  equipements  Equipement[]
   reservations Reservation[]
-  
-  // Relation N-N avec Equipement
-  equipements  Equipement[]  @relation("SalleToEquipement")
-}
-
-model Reservation {
-  id          Int         @id @default(autoincrement())
-  date_debut  DateTime
-  date_fin    DateTime
-  statut      String      @default("confirmé")
-  
-  // Relation avec l'Utilisateur
-  utilisateur Utilisateur @relation(fields: [id_u], references: [id])
-  id_u        Int
-  
-  // Relation avec la Salle
-  salle       Salle       @relation(fields: [id_sa], references: [id])
-  id_sa       Int
 }
 
 model Equipement {
   id      Int     @id @default(autoincrement())
-  libelle String  // ex: "Vidéoprojecteur", "Tableau blanc"
-  
-  // Relation N-N avec Salle
-  salles  Salle[] @relation("SalleToEquipement")
+  nom     String
+  actif   Boolean @default(true)
+  salleId Int
+  salle   Salle   @relation(fields: [salleId], references: [id])
+}
+
+model Reservation {
+  id            Int         @id @default(autoincrement())
+  date          DateTime
+  utilisateurId Int
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
+  salleId       Int
+  salle         Salle       @relation(fields: [salleId], references: [id])
 }
