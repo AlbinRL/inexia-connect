@@ -14,8 +14,8 @@ export class AuthService {
       where: { email },
     });
 
-    // CORRECTION ICI : On utilise utilisateur.mot_de_passe
-    if (!utilisateur || utilisateur.mot_de_passe !== motDePasse) {
+    // CORRECTION ICI : On utilise utilisateur.motDePasse
+    if (!utilisateur || utilisateur.motDePasse !== motDePasse) {
       throw new UnauthorizedException('Email ou mot de passe incorrect');
     }
 

@@ -12,37 +12,38 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UsersController = void 0;
+exports.ReservationsController = void 0;
 const common_1 = require("@nestjs/common");
-const users_service_1 = require("./users.service");
-let UsersController = class UsersController {
-    usersService;
-    constructor(usersService) {
-        this.usersService = usersService;
+const reservations_service_1 = require("./reservations.service");
+let ReservationsController = class ReservationsController {
+    reservationsService;
+    constructor(reservationsService) {
+        this.reservationsService = reservationsService;
     }
-    findAll() {
-        return this.usersService.findAll();
+    create(body) {
+        return this.reservationsService.create(body.utilisateurId, body.salleId, body.date);
     }
-    findOne(id) {
-        return this.usersService.findOne(id);
+    findByUser(userId) {
+        return this.reservationsService.findByUser(userId);
     }
 };
-exports.UsersController = UsersController;
+exports.ReservationsController = ReservationsController;
 __decorate([
-    (0, common_1.Get)(),
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
-], UsersController.prototype, "findAll", null);
+], ReservationsController.prototype, "create", null);
 __decorate([
-    (0, common_1.Get)(':id'),
-    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    (0, common_1.Get)('user/:userId'),
+    __param(0, (0, common_1.Param)('userId', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
-], UsersController.prototype, "findOne", null);
-exports.UsersController = UsersController = __decorate([
-    (0, common_1.Controller)('utilisateurs'),
-    __metadata("design:paramtypes", [users_service_1.UsersService])
-], UsersController);
-//# sourceMappingURL=users.controller.js.map
+], ReservationsController.prototype, "findByUser", null);
+exports.ReservationsController = ReservationsController = __decorate([
+    (0, common_1.Controller)('reservations'),
+    __metadata("design:paramtypes", [reservations_service_1.ReservationsService])
+], ReservationsController);
+//# sourceMappingURL=reservations.controller.js.map

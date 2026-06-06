@@ -5,27 +5,27 @@ export declare class SallesController {
     findAll(): import("@prisma/client").Prisma.PrismaPromise<({
         equipements: {
             id: number;
-            libelle: string;
+            nom: string;
+            actif: boolean;
+            salleId: number;
         }[];
     } & {
         id: number;
-        nom_salle: string;
-        etage: number;
-        type: string;
+        nom: string;
         capacite: number;
-        id_site: number;
+        siteId: number;
     })[]>;
     findBySite(siteId: number): import("@prisma/client").Prisma.PrismaPromise<({
         equipements: {
             id: number;
-            libelle: string;
+            nom: string;
+            actif: boolean;
+            salleId: number;
         }[];
     } & {
         id: number;
-        nom_salle: string;
-        etage: number;
-        type: string;
+        nom: string;
         capacite: number;
-        id_site: number;
+        siteId: number;
     })[]>;
 }

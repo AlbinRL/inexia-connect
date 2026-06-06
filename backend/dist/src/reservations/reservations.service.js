@@ -9,38 +9,47 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UsersService = void 0;
+exports.ReservationsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
-let UsersService = class UsersService {
+let ReservationsService = class ReservationsService {
     prisma;
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async findAll() {
-        return this.prisma.utilisateur.findMany({
-            select: {
-                id: true,
-                nom: true,
-                prenom: true,
-                email: true,
-                role: true,
+    async create(utilisateurId, salleId, date) {
+        return this.prisma.reservation.create({
+            data: {
+                date: new Date(date),
+                utilisateur: {
+                    connect: { id: utilisateurId },
+                },
+                salle: {
+                    connect: { id: salleId },
+                },
             },
         });
     }
-    async findOne(id) {
-        const utilisateur = await this.prisma.utilisateur.findUnique({
-            where: { id },
-            select: { id: true, nom: true, prenom: true, email: true, role: true },
+    async findByUser(userId) {
+        return this.prisma.reservation.findMany({
+            where: {
+                utilisateur: { id: userId },
+            },
+            include: {
+                salle: {
+                    include: {
+                        site: true,
+                        equipements: true,
+                    },
+                },
+            },
+            orderBy: { date: 'asc' },
         });
-        if (!utilisateur)
-            throw new common_1.NotFoundException('Utilisateur introuvable');
-        return utilisateur;
     }
 };
-exports.UsersService = UsersService;
-exports.UsersService = UsersService = __decorate([
+exports.ReservationsService = ReservationsService;
+exports.ReservationsService = ReservationsService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService])
-], UsersService);
-//# sourceMappingURL=users.service.js.map
+], ReservationsService);
+//# sourceMappingURL=reservations.service.js.map

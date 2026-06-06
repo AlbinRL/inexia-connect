@@ -1,90 +1,74 @@
-import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Début du remplissage de la base de données (Seeding)...');
+  console.log('Nettoyage de la base...');
+  await prisma.reservation.deleteMany();
+  await prisma.equipement.deleteMany();
+  await prisma.salle.deleteMany();
+  await prisma.site.deleteMany();
+  await prisma.utilisateur.deleteMany();
 
-  const albin = await prisma.utilisateur.upsert({
-    where: { email: 'albin.roustan@inexia.fr' },
-    update: {},
-    create: {
-      email: 'albin.roustan@inexia.fr',
-      nom: 'Roustan',
+  console.log('Création des données...');
+
+  // 1. Création des Utilisateurs
+  const admin = await prisma.utilisateur.create({
+    data: {
+      nom: 'Roustan-Labouret',
       prenom: 'Albin',
-      mot_de_passe: 'password123', // Penser à hacher mdp
-      role: 'admin',
+      email: 'admin@inexia.fr',
+      motDePasse: '1234', // Mot de passe simple pour la démo
+      role: 'ADMIN',
     },
   });
 
-  const collaborateur = await prisma.utilisateur.upsert({
-    where: { email: 'collaborateur@inexia.fr' },
-    update: {},
-    create: {
-      email: 'collaborateur@inexia.fr',
-      nom: 'Dupont',
-      prenom: 'Jean',
-      mot_de_passe: 'password123',
-      role: 'collaborateur',
+  await prisma.utilisateur.create({
+    data: {
+      nom: 'Martin',
+      prenom: 'Sophie',
+      email: 'lyon@inexia.fr',
+      motDePasse: '1234',
+      role: 'DIRECTEUR',
     },
   });
 
-  // 1. Création d'un Site
-  const siteParis = await prisma.site.upsert({
-    where: { id: 1 },
-    update: {},
-    create: {
-      id: 1, // On force l'ID pour que l'upsert fonctionne bien à chaque fois
-      nom_site: 'Siège Inexia Paris',
-      ville: 'Paris',
-      adresse: '15 Rue de la Paix, 75000 Paris',
+  // 2. Création des Sites
+  const siteMontpellier = await prisma.site.create({
+    data: { nom: 'Agence Montpellier', ville: 'Montpellier' },
+  });
+
+  const siteLyon = await prisma.site.create({
+    data: { nom: 'Agence Lyon', ville: 'Lyon' },
+  });
+
+  // 3. Création des Salles
+  const salleMistral = await prisma.salle.create({
+    data: { nom: 'Salle Mistral', capacite: 10, siteId: siteMontpellier.id },
+  });
+
+  const salleLumiere = await prisma.salle.create({
+    data: { nom: 'Salle Lumière', capacite: 4, siteId: siteLyon.id },
+  });
+
+  // 4. Création des Équipements
+  await prisma.equipement.createMany({
+    data: [
+      { nom: 'Vidéoprojecteur 4K', actif: true, salleId: salleMistral.id },
+      { nom: 'Double écran', actif: true, salleId: salleLumiere.id },
+    ],
+  });
+
+  // 5. Création d'une Réservation
+  await prisma.reservation.create({
+    data: {
+      date: new Date('2026-06-10T09:00:00Z'), // Date de test
+      utilisateurId: admin.id,
+      salleId: salleMistral.id,
     },
   });
 
-  // 2. Création d'un Équipement
-  const projecteur = await prisma.equipement.upsert({
-    where: { id: 1 },
-    update: {},
-    create: { id: 1, libelle: 'Vidéoprojecteur 4K' },
-  });
-
-  // 3. Création d'une Salle liée au Site et à l'Équipement
-  const salleReunion = await prisma.salle.upsert({
-    where: { id: 1 },
-    update: {},
-    create: {
-      id: 1,
-      nom_salle: 'Salle Apollo',
-      etage: 2,
-      type: 'Réunion',
-      capacite: 10,
-      id_site: siteParis.id,
-      equipements: { connect: [{ id: projecteur.id }] }, // Liaison Many-to-Many
-    },
-  });
-
-  // 4. Création d'une Réservation pour Albin dans la Salle Apollo
-  const reservation = await prisma.reservation.upsert({
-    where: { id: 1 },
-    update: {},
-    create: {
-      id: 1,
-      date_debut: new Date(new Date().setHours(14, 0, 0, 0)), // Aujourd'hui à 14h
-      date_fin: new Date(new Date().setHours(16, 0, 0, 0)), // Aujourd'hui à 16h
-      statut: 'confirmé',
-      id_u: albin.id,
-      id_sa: salleReunion.id,
-    },
-  });
-
-  console.log('Données créées avec succès !');
+  console.log('Base de données remplie avec succès ! 🌱');
 }
 
 main()

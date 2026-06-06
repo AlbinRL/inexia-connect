@@ -24,7 +24,7 @@ let AuthService = class AuthService {
         const utilisateur = await this.prisma.utilisateur.findUnique({
             where: { email },
         });
-        if (!utilisateur || utilisateur.mot_de_passe !== motDePasse) {
+        if (!utilisateur || utilisateur.motDePasse !== motDePasse) {
             throw new common_1.UnauthorizedException('Email ou mot de passe incorrect');
         }
         const payload = {

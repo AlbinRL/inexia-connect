@@ -4,8 +4,7 @@ export declare class SitesController {
     constructor(sitesService: SitesService);
     findAll(): import("@prisma/client").Prisma.PrismaPromise<{
         id: number;
-        nom_site: string;
+        nom: string;
         ville: string;
-        adresse: string;
     }[]>;
 }
