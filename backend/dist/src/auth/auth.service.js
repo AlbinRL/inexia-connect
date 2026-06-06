@@ -11,23 +11,42 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
-const users_service_1 = require("../users/users.service");
+const prisma_service_1 = require("../prisma/prisma.service");
+const jwt_1 = require("@nestjs/jwt");
 let AuthService = class AuthService {
-    usersService;
-    constructor(usersService) {
-        this.usersService = usersService;
+    prisma;
+    jwtService;
+    constructor(prisma, jwtService) {
+        this.prisma = prisma;
+        this.jwtService = jwtService;
     }
-    async login(email) {
-        const users = await this.usersService.findAll();
-        if (!email) {
-            throw new common_1.UnauthorizedException();
+    async login(email, motDePasse) {
+        const utilisateur = await this.prisma.utilisateur.findUnique({
+            where: { email },
+        });
+        if (!utilisateur || utilisateur.mot_de_passe !== motDePasse) {
+            throw new common_1.UnauthorizedException('Email ou mot de passe incorrect');
         }
-        return { message: 'Connexion réussie', email };
+        const payload = {
+            sub: utilisateur.id,
+            email: utilisateur.email,
+            role: utilisateur.role,
+        };
+        return {
+            access_token: this.jwtService.sign(payload),
+            utilisateur: {
+                id: utilisateur.id,
+                nom: utilisateur.nom,
+                prenom: utilisateur.prenom,
+                role: utilisateur.role,
+            },
+        };
     }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [users_service_1.UsersService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        jwt_1.JwtService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

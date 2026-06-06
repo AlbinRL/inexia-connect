@@ -1,16 +1,38 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+  ) {}
 
-  async login(email: string): Promise<any> {
-    // On utilise 'await' pour simuler une recherche d'utilisateurs en base
-    const users = await this.usersService.findAll();
-    if (!email) {
-      throw new UnauthorizedException();
+  async login(email: string, motDePasse: string) {
+    const utilisateur = await this.prisma.utilisateur.findUnique({
+      where: { email },
+    });
+
+    // CORRECTION ICI : On utilise utilisateur.mot_de_passe
+    if (!utilisateur || utilisateur.mot_de_passe !== motDePasse) {
+      throw new UnauthorizedException('Email ou mot de passe incorrect');
     }
-    return { message: 'Connexion réussie', email };
+
+    const payload = {
+      sub: utilisateur.id,
+      email: utilisateur.email,
+      role: utilisateur.role,
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      utilisateur: {
+        id: utilisateur.id,
+        nom: utilisateur.nom,
+        prenom: utilisateur.prenom,
+        role: utilisateur.role,
+      },
+    };
   }
 }

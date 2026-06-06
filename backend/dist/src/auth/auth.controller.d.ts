@@ -4,5 +4,14 @@ export declare class AuthController {
     constructor(authService: AuthService);
     login(body: {
         email: string;
-    }): any;
+        motDePasse: string;
+    }): Promise<{
+        access_token: string;
+        utilisateur: {
+            id: number;
+            nom: string;
+            prenom: string;
+            role: string;
+        };
+    }>;
 }
