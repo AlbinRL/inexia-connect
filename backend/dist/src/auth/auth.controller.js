@@ -20,11 +20,21 @@ let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
     }
+    async register(body) {
+        return this.authService.register(body);
+    }
     async login(body) {
         return this.authService.login(body.email, body.motDePasse);
     }
 };
 exports.AuthController = AuthController;
+__decorate([
+    (0, common_1.Post)('register'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "register", null);
 __decorate([
     (0, common_1.Post)('login'),
     __param(0, (0, common_1.Body)()),

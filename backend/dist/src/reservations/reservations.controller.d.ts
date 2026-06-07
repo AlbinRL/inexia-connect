@@ -28,8 +28,8 @@ export declare class ReservationsController {
         } & {
             nom: string;
             id: number;
-            capacite: number;
             siteId: number;
+            capacite: number;
         };
     } & {
         id: number;

@@ -24,8 +24,8 @@ export declare class ReservationsService {
         } & {
             nom: string;
             id: number;
-            capacite: number;
             siteId: number;
+            capacite: number;
         };
     } & {
         id: number;

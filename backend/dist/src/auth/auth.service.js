@@ -54,6 +54,39 @@ let AuthService = class AuthService {
         this.prisma = prisma;
         this.jwtService = jwtService;
     }
+    async register(data) {
+        const existingUser = await this.prisma.utilisateur.findUnique({
+            where: { email: data.email },
+        });
+        if (existingUser) {
+            throw new common_1.ConflictException('Cet email est déjà utilisé');
+        }
+        const saltOrRounds = 10;
+        const hashedPassword = await bcrypt.hash(data.motDePasse, saltOrRounds);
+        const utilisateur = await this.prisma.utilisateur.create({
+            data: {
+                email: data.email,
+                motDePasse: hashedPassword,
+                nom: data.nom,
+                prenom: data.prenom,
+                role: 'COLLABORATEUR',
+            },
+        });
+        const payload = {
+            sub: utilisateur.id,
+            email: utilisateur.email,
+            role: utilisateur.role,
+        };
+        return {
+            access_token: this.jwtService.sign(payload),
+            utilisateur: {
+                id: utilisateur.id,
+                nom: utilisateur.nom,
+                prenom: utilisateur.prenom,
+                role: utilisateur.role,
+            },
+        };
+    }
     async login(email, motDePasse) {
         const utilisateur = await this.prisma.utilisateur.findUnique({
             where: { email },

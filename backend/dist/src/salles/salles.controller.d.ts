@@ -12,8 +12,8 @@ export declare class SallesController {
     } & {
         nom: string;
         id: number;
-        capacite: number;
         siteId: number;
+        capacite: number;
     })[]>;
     findBySite(siteId: number): import("@prisma/client").Prisma.PrismaPromise<({
         equipements: {
@@ -25,7 +25,7 @@ export declare class SallesController {
     } & {
         nom: string;
         id: number;
-        capacite: number;
         siteId: number;
+        capacite: number;
     })[]>;
 }

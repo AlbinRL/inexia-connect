@@ -6,14 +6,14 @@ export declare class UsersController {
         nom: string;
         prenom: string;
         email: string;
-        role: string;
+        role: import("@prisma/client").$Enums.Role;
         id: number;
     }[]>;
     findOne(id: number): Promise<{
         nom: string;
         prenom: string;
         email: string;
-        role: string;
+        role: import("@prisma/client").$Enums.Role;
         id: number;
     }>;
 }

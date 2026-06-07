@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -9,6 +13,55 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
   ) {}
+
+  async register(data: {
+    email: string;
+    motDePasse: string;
+    nom: string;
+    prenom: string;
+  }) {
+    // 1. Vérifier si l'utilisateur existe déjà
+    const existingUser = await this.prisma.utilisateur.findUnique({
+      where: { email: data.email },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('Cet email est déjà utilisé');
+    }
+
+    // 2. Hasher le mot de passe
+    const saltOrRounds = 10;
+    const hashedPassword = await bcrypt.hash(data.motDePasse, saltOrRounds);
+
+    // 3. Créer l'utilisateur avec le rôle par défaut 'COLLABORATEUR'
+    const utilisateur = await this.prisma.utilisateur.create({
+      data: {
+        email: data.email,
+        motDePasse: hashedPassword,
+        nom: data.nom,
+        prenom: data.prenom,
+        role: 'COLLABORATEUR',
+      },
+    });
+
+    // 4. Préparer le payload du JWT
+    const payload = {
+      sub: utilisateur.id,
+      email: utilisateur.email,
+      role: utilisateur.role,
+    };
+
+    // 5. Renvoyer le token et les infos
+    return {
+      access_token: this.jwtService.sign(payload),
+      utilisateur: {
+        id: utilisateur.id,
+        nom: utilisateur.nom,
+        prenom: utilisateur.prenom,
+        role: utilisateur.role,
+      },
+    };
+  }
 
   async login(email: string, motDePasse: string) {
     // 1. On cherche l'utilisateur par son email

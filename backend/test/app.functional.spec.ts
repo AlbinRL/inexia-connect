@@ -17,8 +17,7 @@ describe('3. TEST FONCTIONNEL (E2E) - API Inexia-Connect', () => {
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    })
-      .compile();
+    }).compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
