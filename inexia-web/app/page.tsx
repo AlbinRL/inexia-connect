@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '../src/context/AuthContext';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -58,9 +59,15 @@ export default function LoginPage() {
           />
         </div>
 
-        <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
+        <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 mb-4">
           Se connecter
         </button>
+
+        <div className="text-center text-sm">
+          <Link href="/register" className="text-blue-600 hover:underline">
+            Pas encore de compte ? S'inscrire
+          </Link>
+        </div>
       </form>
     </div>
   );

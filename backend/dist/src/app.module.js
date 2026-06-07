@@ -16,6 +16,7 @@ const users_module_1 = require("./users/users.module");
 const sites_module_1 = require("./sites/sites.module");
 const salles_module_1 = require("./salles/salles.module");
 const reservations_module_1 = require("./reservations/reservations.module");
+const materiel_module_1 = require("./materiel/materiel.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -27,6 +28,7 @@ exports.AppModule = AppModule = __decorate([
             salles_module_1.SallesModule,
             users_module_1.UsersModule,
             reservations_module_1.ReservationsModule,
+            materiel_module_1.MaterielModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService, prisma_service_1.PrismaService],

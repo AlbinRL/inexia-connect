@@ -4,7 +4,12 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 type User = { id: number; nom: string; prenom: string; role: string };
-type AuthContextType = { user: User | null; login: (token: string, userData: User) => void; logout: () => void; };
+type AuthContextType = { 
+  user: User | null; 
+  login: (token: string, userData: User) => void; 
+  logout: () => void;
+  register: (userData: any) => Promise<void>;
+};
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -42,7 +47,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/');
   };
 
-  return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
+  const register = async (userData: any) => {
+    const res = await fetch('http://localhost:3000/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(errorData?.message || "Erreur lors de l'inscription");
+    }
+    
+    // Redirection vers la page de connexion après inscription
+    router.push('/');
+  };
+
+  return <AuthContext.Provider value={{ user, login, logout, register }}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => {
