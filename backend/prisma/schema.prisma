@@ -11,6 +11,14 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Enum pour les rôles des utilisateurs
+enum Role {
+  USER
+  COLLABORATEUR
+  ADMIN
+  DIRECTEUR
+}
+
 // 3. Modèles de données (Tes Tables)
 
 model Utilisateur {
@@ -19,15 +27,19 @@ model Utilisateur {
   prenom       String
   email        String        @unique
   motDePasse   String
-  role         String        // 'ADMIN', 'COLLABORATEUR', 'DIRECTEUR'
+  role         Role          @default(USER)
+  siteId       Int?
+  site         Site?         @relation(fields: [siteId], references: [id])
   reservations Reservation[]
 }
 
 model Site {
-  id     Int     @id @default(autoincrement())
-  nom    String
-  ville  String
-  salles Salle[]
+  id           Int           @id @default(autoincrement())
+  nom          String
+  ville        String
+  salles       Salle[]
+  utilisateurs Utilisateur[]
+  materiels    Materiel[]
 }
 
 model Salle {
@@ -48,11 +60,32 @@ model Equipement {
   salle   Salle   @relation(fields: [salleId], references: [id])
 }
 
+model Materiel {
+  id             Int                   @id @default(autoincrement())
+  nom            String
+  quantiteTotale Int
+  siteId         Int
+  site           Site                  @relation(fields: [siteId], references: [id])
+  reservations   ReservationMateriel[]
+}
+
 model Reservation {
-  id            Int         @id @default(autoincrement())
+  id            Int                   @id @default(autoincrement())
   date          DateTime
   utilisateurId Int
-  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
+  utilisateur   Utilisateur           @relation(fields: [utilisateurId], references: [id])
   salleId       Int
-  salle         Salle       @relation(fields: [salleId], references: [id])
+  salle         Salle                 @relation(fields: [salleId], references: [id])
+  materiels     ReservationMateriel[]
+}
+
+model ReservationMateriel {
+  reservationId Int
+  materielId    Int
+  quantite      Int
+
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  materiel      Materiel    @relation(fields: [materielId], references: [id])
+
+  @@id([reservationId, materielId])
 }

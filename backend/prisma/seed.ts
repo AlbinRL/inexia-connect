@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import * as bcrypt from 'bcrypt';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -15,13 +16,15 @@ async function main() {
 
   console.log('Création des données...');
 
+  const hashedPassword = await bcrypt.hash('1234', 10);
+
   // 1. Création des Utilisateurs
   const admin = await prisma.utilisateur.create({
     data: {
       nom: 'Roustan-Labouret',
       prenom: 'Albin',
       email: 'admin@inexia.fr',
-      motDePasse: '1234', // Mot de passe simple pour la démo
+      motDePasse: hashedPassword,
       role: 'ADMIN',
     },
   });

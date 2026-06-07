@@ -4,19 +4,28 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../src/context/AuthContext';
 import { useRouter } from 'next/navigation';
 
+type Reservation = {
+  id: number;
+  date: string;
+  salle?: {
+    nom: string;
+    site?: {
+      nom: string;
+    };
+  };
+};
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const [reservations, setReservations] = useState<any[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
 
   useEffect(() => {
-    // Sécurité : Si aucun utilisateur n'est connecté, on le renvoie à l'accueil
     if (!user) {
       router.push('/');
       return;
     }
 
-    // On va chercher les réservations de l'utilisateur via l'API
     const fetchReservations = async () => {
       try {
         const res = await fetch(`http://localhost:3000/reservations/user/${user.id}`);
@@ -32,13 +41,12 @@ export default function DashboardPage() {
     fetchReservations();
   }, [user, router]);
 
-  // Évite un clignotement le temps que la redirection se fasse
   if (!user) return null;
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Mon Planning</h1>
+        <h1 className="text-3xl font-bold text-white">Mon Planning</h1>
         <button className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition">
           + Nouvelle Réservation
         </button>
@@ -53,7 +61,12 @@ export default function DashboardPage() {
               <li key={resa.id} className="py-4 flex justify-between items-center">
                 <div>
                   <p className="font-semibold text-gray-800">
-                    {new Date(resa.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                    {new Date(resa.date).toLocaleDateString('fr-FR', { 
+                      weekday: 'long', 
+                      day: 'numeric', 
+                      month: 'long', 
+                      year: 'numeric' 
+                    })}
                   </p>
                   <p className="text-sm text-gray-500">
                     {resa.salle?.site?.nom} - {resa.salle?.nom}
