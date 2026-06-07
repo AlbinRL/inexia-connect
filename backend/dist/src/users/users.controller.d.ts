@@ -3,17 +3,17 @@ export declare class UsersController {
     private readonly usersService;
     constructor(usersService: UsersService);
     findAll(): Promise<{
-        id: number;
-        email: string;
         nom: string;
         prenom: string;
+        email: string;
         role: string;
+        id: number;
     }[]>;
     findOne(id: number): Promise<{
-        id: number;
-        email: string;
         nom: string;
         prenom: string;
+        email: string;
         role: string;
+        id: number;
     }>;
 }
