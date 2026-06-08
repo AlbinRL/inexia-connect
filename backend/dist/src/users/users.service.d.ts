@@ -4,16 +4,16 @@ export declare class UsersService {
     constructor(prisma: PrismaService);
     findAll(): Promise<{
         nom: string;
-        prenom: string;
-        email: string;
-        role: import("@prisma/client").$Enums.Role;
         id: number;
+        email: string;
+        prenom: string;
+        role: import("@prisma/client").$Enums.Role;
     }[]>;
     findOne(id: number): Promise<{
         nom: string;
-        prenom: string;
-        email: string;
-        role: import("@prisma/client").$Enums.Role;
         id: number;
+        email: string;
+        prenom: string;
+        role: import("@prisma/client").$Enums.Role;
     }>;
 }

@@ -26,8 +26,8 @@ let MaterielController = class MaterielController {
     create(body) {
         return this.materielService.create(body);
     }
-    findAll(siteId) {
-        return this.materielService.findAll(siteId ? parseInt(siteId, 10) : undefined);
+    async findAll() {
+        return this.materielService.findAll();
     }
     findOne(id) {
         return this.materielService.findOne(id);
@@ -50,10 +50,9 @@ __decorate([
 ], MaterielController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)('siteId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
 ], MaterielController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),

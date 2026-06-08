@@ -3,29 +3,39 @@ export declare class SallesService {
     private prisma;
     constructor(prisma: PrismaService);
     findAll(): import("@prisma/client").Prisma.PrismaPromise<({
-        equipements: {
-            nom: string;
+        equipements: ({
+            materiel: {
+                id: number;
+                nom: string;
+            };
+        } & {
             id: number;
             salleId: number;
-            actif: boolean;
-        }[];
+            materielId: number;
+            quantite: number;
+        })[];
     } & {
-        nom: string;
         id: number;
-        siteId: number;
+        nom: string;
         capacite: number;
+        siteId: number;
     })[]>;
     findBySite(siteId: number): import("@prisma/client").Prisma.PrismaPromise<({
-        equipements: {
-            nom: string;
+        equipements: ({
+            materiel: {
+                id: number;
+                nom: string;
+            };
+        } & {
             id: number;
             salleId: number;
-            actif: boolean;
-        }[];
+            materielId: number;
+            quantite: number;
+        })[];
     } & {
-        nom: string;
         id: number;
-        siteId: number;
+        nom: string;
         capacite: number;
+        siteId: number;
     })[]>;
 }

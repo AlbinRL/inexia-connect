@@ -19,13 +19,21 @@ let SallesService = class SallesService {
     }
     findAll() {
         return this.prisma.salle.findMany({
-            include: { equipements: true },
+            include: {
+                equipements: {
+                    include: { materiel: true },
+                },
+            },
         });
     }
     findBySite(siteId) {
         return this.prisma.salle.findMany({
             where: { site: { id: siteId } },
-            include: { equipements: true },
+            include: {
+                equipements: {
+                    include: { materiel: true }
+                },
+            },
         });
     }
 };

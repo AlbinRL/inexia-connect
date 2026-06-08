@@ -6,15 +6,17 @@ import { useRouter } from 'next/navigation';
 type User = { id: number; nom: string; prenom: string; role: string };
 type AuthContextType = { 
   user: User | null; 
+  isReady: boolean;
   login: (token: string, userData: User) => void; 
   logout: () => void;
-  register: (userData: any) => Promise<void>;
+  register: (userData: Record<string, unknown>) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isReady, setIsReady] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -24,6 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (storedUser) {
         setUser(JSON.parse(storedUser));
       }
+      setIsReady(true);
     };
 
     chargerUtilisateur();
@@ -47,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/');
   };
 
-  const register = async (userData: any) => {
+  const register = async (userData: Record<string, unknown>) => {
     const res = await fetch('http://localhost:3000/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -63,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/');
   };
 
-  return <AuthContext.Provider value={{ user, login, logout, register }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, isReady, login, logout, register }}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => {

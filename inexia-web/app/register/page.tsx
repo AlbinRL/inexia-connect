@@ -24,8 +24,12 @@ export default function RegisterPage() {
 
     try {
       await register({ nom, prenom, email, motDePasse: password });
-    } catch (err: any) {
-      setError(err.message || "Erreur lors de l'inscription.");
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Erreur lors de l'inscription.");
+      }
     }
   };
 
@@ -92,7 +96,7 @@ export default function RegisterPage() {
         </div>
 
         <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 mb-4">
-          S'inscrire
+          S&apos;inscrire
         </button>
 
         <div className="text-center text-sm">

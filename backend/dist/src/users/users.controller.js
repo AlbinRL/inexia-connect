@@ -11,12 +11,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var UsersController_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersController = void 0;
 const common_1 = require("@nestjs/common");
 const users_service_1 = require("./users.service");
-let UsersController = class UsersController {
+let UsersController = UsersController_1 = class UsersController {
     usersService;
+    logger = new common_1.Logger(UsersController_1.name);
     constructor(usersService) {
         this.usersService = usersService;
     }
@@ -24,6 +26,7 @@ let UsersController = class UsersController {
         return this.usersService.findAll();
     }
     findOne(id) {
+        this.logger.log(`Récupération du profil de l'utilisateur avec l'ID ${id}`);
         return this.usersService.findOne(id);
     }
 };
@@ -41,7 +44,7 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "findOne", null);
-exports.UsersController = UsersController = __decorate([
+exports.UsersController = UsersController = UsersController_1 = __decorate([
     (0, common_1.Controller)('utilisateurs'),
     __metadata("design:paramtypes", [users_service_1.UsersService])
 ], UsersController);

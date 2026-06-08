@@ -6,18 +6,15 @@ import { Materiel } from '@prisma/client';
 export class MaterielService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: { nom: string; quantiteTotale: number; siteId: number }): Promise<Materiel> {
+  // Création simplifiée : on ne crée qu'un nom (le référentiel)
+  async create(data: { nom: string }): Promise<Materiel> {
     return this.prisma.materiel.create({
       data,
     });
   }
 
-  async findAll(siteId?: number): Promise<Materiel[]> {
-    if (siteId) {
-      return this.prisma.materiel.findMany({
-        where: { siteId },
-      });
-    }
+  // findAll récupère maintenant tout le référentiel de matériel
+  async findAll(): Promise<Materiel[]> {
     return this.prisma.materiel.findMany();
   }
 
@@ -31,11 +28,7 @@ export class MaterielService {
     return materiel;
   }
 
-  async update(
-    id: number,
-    data: { nom?: string; quantiteTotale?: number; siteId?: number },
-  ): Promise<Materiel> {
-    // Vérifier l'existence
+  async update(id: number, data: { nom?: string }): Promise<Materiel> {
     await this.findOne(id);
     return this.prisma.materiel.update({
       where: { id },
@@ -44,7 +37,6 @@ export class MaterielService {
   }
 
   async remove(id: number): Promise<Materiel> {
-    // Vérifier l'existence
     await this.findOne(id);
     return this.prisma.materiel.delete({
       where: { id },

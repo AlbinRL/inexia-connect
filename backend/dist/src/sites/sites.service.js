@@ -18,7 +18,17 @@ let SitesService = class SitesService {
         this.prisma = prisma;
     }
     findAll() {
-        return this.prisma.site.findMany();
+        return this.prisma.site.findMany({
+            include: {
+                salles: {
+                    include: {
+                        equipements: {
+                            include: { materiel: true },
+                        },
+                    },
+                },
+            },
+        });
     }
 };
 exports.SitesService = SitesService;

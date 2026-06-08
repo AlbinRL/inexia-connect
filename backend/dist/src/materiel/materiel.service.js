@@ -22,12 +22,7 @@ let MaterielService = class MaterielService {
             data,
         });
     }
-    async findAll(siteId) {
-        if (siteId) {
-            return this.prisma.materiel.findMany({
-                where: { siteId },
-            });
-        }
+    async findAll() {
         return this.prisma.materiel.findMany();
     }
     async findOne(id) {

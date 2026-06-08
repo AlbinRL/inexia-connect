@@ -6,6 +6,16 @@ export class SitesService {
   constructor(private prisma: PrismaService) {}
 
   findAll() {
-    return this.prisma.site.findMany();
+    return this.prisma.site.findMany({
+      include: {
+        salles: {
+          include: {
+            equipements: {
+              include: { materiel: true },
+            },
+          },
+        },
+      },
+    });
   }
 }

@@ -15,34 +15,89 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReservationsController = void 0;
 const common_1 = require("@nestjs/common");
 const reservations_service_1 = require("./reservations.service");
+const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const roles_guard_1 = require("../auth/roles.guard");
+const roles_decorator_1 = require("../auth/roles.decorator");
 let ReservationsController = class ReservationsController {
     reservationsService;
     constructor(reservationsService) {
         this.reservationsService = reservationsService;
     }
-    create(body) {
-        return this.reservationsService.create(body.utilisateurId, body.salleId, body.date);
+    async findMyReservations(req) {
+        return this.reservationsService.findByUser(req.user.sub);
     }
-    findByUser(userId) {
+    async findUserReservations(req, userId) {
+        if (req.user.sub !== userId && req.user.role !== 'ADMIN' && req.user.role !== 'DIRECTEUR') {
+            throw new common_1.ForbiddenException('Accès refusé');
+        }
         return this.reservationsService.findByUser(userId);
+    }
+    async findAll() {
+        return this.reservationsService.findAll();
+    }
+    async remove(id) {
+        return this.reservationsService.remove(id);
+    }
+    async findByUser(req, userId) {
+        if (req.user.sub !== userId) {
+            throw new common_1.ForbiddenException('Accès refusé');
+        }
+        return this.reservationsService.findByUserId(userId);
+    }
+    async create(req, dto) {
+        const userId = req.user.sub;
+        return this.reservationsService.create(userId, dto);
     }
 };
 exports.ReservationsController = ReservationsController;
 __decorate([
-    (0, common_1.Post)(),
-    __param(0, (0, common_1.Body)()),
+    (0, common_1.Get)('me'),
+    __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], ReservationsController.prototype, "create", null);
+    __metadata("design:returntype", Promise)
+], ReservationsController.prototype, "findMyReservations", null);
 __decorate([
     (0, common_1.Get)('user/:userId'),
-    __param(0, (0, common_1.Param)('userId', common_1.ParseIntPipe)),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('userId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number]),
+    __metadata("design:returntype", Promise)
+], ReservationsController.prototype, "findUserReservations", null);
+__decorate([
+    (0, roles_decorator_1.Roles)('ADMIN', 'DIRECTEUR'),
+    (0, common_1.Get)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ReservationsController.prototype, "findAll", null);
+__decorate([
+    (0, roles_decorator_1.Roles)('ADMIN', 'DIRECTEUR'),
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
+], ReservationsController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Get)('user/:userId'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('userId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number]),
+    __metadata("design:returntype", Promise)
 ], ReservationsController.prototype, "findByUser", null);
+__decorate([
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], ReservationsController.prototype, "create", null);
 exports.ReservationsController = ReservationsController = __decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.Controller)('reservations'),
     __metadata("design:paramtypes", [reservations_service_1.ReservationsService])
 ], ReservationsController);

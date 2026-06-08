@@ -7,37 +7,27 @@ export declare class MaterielController {
         quantiteTotale: number;
         siteId: number;
     }): Promise<{
-        nom: string;
         id: number;
-        siteId: number;
-        quantiteTotale: number;
+        nom: string;
     }>;
-    findAll(siteId?: string): Promise<{
-        nom: string;
+    findAll(): Promise<{
         id: number;
-        siteId: number;
-        quantiteTotale: number;
+        nom: string;
     }[]>;
     findOne(id: number): Promise<{
-        nom: string;
         id: number;
-        siteId: number;
-        quantiteTotale: number;
+        nom: string;
     }>;
     update(id: number, body: {
         nom?: string;
         quantiteTotale?: number;
         siteId?: number;
     }): Promise<{
-        nom: string;
         id: number;
-        siteId: number;
-        quantiteTotale: number;
+        nom: string;
     }>;
     remove(id: number): Promise<{
-        nom: string;
         id: number;
-        siteId: number;
-        quantiteTotale: number;
+        nom: string;
     }>;
 }

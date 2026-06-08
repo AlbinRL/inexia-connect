@@ -17,33 +17,83 @@ let ReservationsService = class ReservationsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async create(utilisateurId, salleId, date) {
-        return this.prisma.reservation.create({
-            data: {
-                date: new Date(date),
+    async findByUserId(userId) {
+        return this.prisma.reservation.findMany({
+            where: { utilisateurId: userId },
+            orderBy: { date: 'desc' },
+            include: {
+                salle: {
+                    include: {
+                        site: true,
+                    },
+                },
+            },
+        });
+    }
+    async findAll() {
+        return this.prisma.reservation.findMany({
+            orderBy: { date: 'desc' },
+            include: {
                 utilisateur: {
-                    connect: { id: utilisateurId },
+                    select: {
+                        id: true,
+                        nom: true,
+                        prenom: true,
+                    },
                 },
                 salle: {
-                    connect: { id: salleId },
+                    include: {
+                        site: {
+                            select: {
+                                id: true,
+                                nom: true,
+                            },
+                        },
+                    },
                 },
             },
         });
     }
     async findByUser(userId) {
         return this.prisma.reservation.findMany({
-            where: {
-                utilisateur: { id: userId },
-            },
+            where: { utilisateurId: userId },
+            orderBy: { date: 'asc' },
             include: {
                 salle: {
                     include: {
-                        site: true,
-                        equipements: true,
+                        site: {
+                            select: {
+                                id: true,
+                                nom: true,
+                            },
+                        },
+                    },
+                },
+                utilisateur: {
+                    select: {
+                        id: true,
+                        nom: true,
+                        prenom: true,
                     },
                 },
             },
-            orderBy: { date: 'asc' },
+        });
+    }
+    async create(userId, dto) {
+        return this.prisma.$transaction(async (tx) => {
+            const reservation = await tx.reservation.create({
+                data: {
+                    date: new Date(dto.date),
+                    salleId: dto.salleId,
+                    utilisateurId: userId,
+                },
+            });
+            return reservation;
+        });
+    }
+    async remove(id) {
+        return this.prisma.reservation.delete({
+            where: { id },
         });
     }
 };

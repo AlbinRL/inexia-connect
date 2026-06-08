@@ -1,8 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// 1. Configuration de la source de données
-
+// 1. Configuration
 datasource db {
   provider = "postgresql"
 }
@@ -11,15 +7,13 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// Enum pour les rôles des utilisateurs
+// 2. Enums et Modèles de base
 enum Role {
   USER
   COLLABORATEUR
   ADMIN
   DIRECTEUR
 }
-
-// 3. Modèles de données (Tes Tables)
 
 model Utilisateur {
   id           Int           @id @default(autoincrement())
@@ -34,12 +28,20 @@ model Utilisateur {
 }
 
 model Site {
-  id           Int           @id @default(autoincrement())
-  nom          String
-  ville        String
-  salles       Salle[]
-  utilisateurs Utilisateur[]
-  materiels    Materiel[]
+  id            Int           @id @default(autoincrement())
+  nom           String
+  ville         String
+  salles        Salle[]
+  utilisateurs  Utilisateur[]
+}
+
+// 3. Modèles pour la gestion des salles et équipements
+
+// Le référentiel : liste unique de tous les matériels possibles
+model Materiel {
+  id          Int          @id @default(autoincrement())
+  nom         String       @unique // "Vidéoprojecteur", "Ordinateur", etc.
+  equipements Equipement[] // Lien vers les salles possédant ce matériel
 }
 
 model Salle {
@@ -48,44 +50,29 @@ model Salle {
   capacite     Int
   siteId       Int
   site         Site          @relation(fields: [siteId], references: [id])
-  equipements  Equipement[]
+  equipements  Equipement[]  // Liste des équipements présents dans cette salle
   reservations Reservation[]
 }
 
+// La table de jointure : précise quelle salle a quel matériel et en quelle quantité
 model Equipement {
-  id      Int     @id @default(autoincrement())
-  nom     String
-  actif   Boolean @default(true)
-  salleId Int
-  salle   Salle   @relation(fields: [salleId], references: [id])
+  id         Int      @id @default(autoincrement())
+  salleId    Int
+  materielId Int
+  quantite   Int      @default(1)
+  
+  salle      Salle    @relation(fields: [salleId], references: [id])
+  materiel   Materiel @relation(fields: [materielId], references: [id])
+
+  @@unique([salleId, materielId]) // Empêche d'avoir deux fois le même matériel dans la même salle
 }
 
-model Materiel {
-  id             Int                   @id @default(autoincrement())
-  nom            String
-  quantiteTotale Int
-  siteId         Int
-  site           Site                  @relation(fields: [siteId], references: [id])
-  reservations   ReservationMateriel[]
-}
-
+// 4. Modèle de réservation simplifié
 model Reservation {
-  id            Int                   @id @default(autoincrement())
+  id            Int         @id @default(autoincrement())
   date          DateTime
   utilisateurId Int
-  utilisateur   Utilisateur           @relation(fields: [utilisateurId], references: [id])
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
   salleId       Int
-  salle         Salle                 @relation(fields: [salleId], references: [id])
-  materiels     ReservationMateriel[]
-}
-
-model ReservationMateriel {
-  reservationId Int
-  materielId    Int
-  quantite      Int
-
-  reservation   Reservation @relation(fields: [reservationId], references: [id])
-  materiel      Materiel    @relation(fields: [materielId], references: [id])
-
-  @@id([reservationId, materielId])
+  salle         Salle       @relation(fields: [salleId], references: [id])
 }

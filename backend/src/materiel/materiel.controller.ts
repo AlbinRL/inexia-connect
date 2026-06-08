@@ -34,10 +34,9 @@ export class MaterielController {
     return this.materielService.create(body);
   }
 
-  // Tous les utilisateurs authentifiés peuvent consulter (y compris COLLABORATEUR)
   @Get()
-  findAll(@Query('siteId') siteId?: string) {
-    return this.materielService.findAll(siteId ? parseInt(siteId, 10) : undefined);
+  async findAll() {
+    return this.materielService.findAll();
   }
 
   @Get(':id')

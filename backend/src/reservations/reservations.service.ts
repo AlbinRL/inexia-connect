@@ -1,19 +1,45 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateReservationDto } from './dto/create-reservation.dto';
 
 @Injectable()
 export class ReservationsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(utilisateurId: number, salleId: number, date: string) {
-    return this.prisma.reservation.create({
-      data: {
-        date: new Date(date),
+  async findByUserId(userId: number) {
+    return this.prisma.reservation.findMany({
+      where: { utilisateurId: userId },
+      orderBy: { date: 'desc' },
+      include: {
+        salle: {
+          include: {
+            site: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findAll() {
+    return this.prisma.reservation.findMany({
+      orderBy: { date: 'desc' },
+      include: {
         utilisateur: {
-          connect: { id: utilisateurId },
+          select: {
+            id: true,
+            nom: true,
+            prenom: true,
+          },
         },
         salle: {
-          connect: { id: salleId },
+          include: {
+            site: {
+              select: {
+                id: true,
+                nom: true,
+              },
+            },
+          },
         },
       },
     });
@@ -21,19 +47,49 @@ export class ReservationsService {
 
   async findByUser(userId: number) {
     return this.prisma.reservation.findMany({
-      // On passe par l'objet relationnel pour éviter les bugs de cache
-      where: {
-        utilisateur: { id: userId },
-      },
+      where: { utilisateurId: userId },
+      orderBy: { date: 'asc' },
       include: {
         salle: {
           include: {
-            site: true,
-            equipements: true,
+            site: {
+              select: {
+                id: true,
+                nom: true,
+              },
+            },
+          },
+        },
+        utilisateur: {
+          select: {
+            id: true,
+            nom: true,
+            prenom: true,
           },
         },
       },
-      orderBy: { date: 'asc' }, // Trie du plus récent au plus ancien
+    });
+  }
+
+  async create(userId: number, dto: CreateReservationDto) {
+    // On utilise une transaction interactive (tx) au lieu de this.prisma
+    return this.prisma.$transaction(async (tx) => {
+      // 1. On crée d'abord la ligne principale : la Réservation
+      const reservation = await tx.reservation.create({
+        data: {
+          date: new Date(dto.date),
+          salleId: dto.salleId,
+          utilisateurId: userId,
+        },
+      });
+
+      return reservation;
+    });
+  }
+
+  async remove(id: number) {
+    return this.prisma.reservation.delete({
+      where: { id },
     });
   }
 }

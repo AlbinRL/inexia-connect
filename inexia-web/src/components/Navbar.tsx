@@ -1,12 +1,11 @@
 "use client";
 
-import Link from 'next/link';
-import { useAuth } from '../context/AuthContext';
+import Link from "next/link";
+import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
 
-  // On masque la navbar si l'utilisateur n'est pas connecté
   if (!user) return null;
 
   return (
@@ -16,7 +15,10 @@ export default function Navbar() {
         <Link href="/dashboard" className="hover:text-blue-200 transition-colors">
           Mon Planning
         </Link>
-        {user.role === 'ADMIN' && (
+        <Link href="/reservation" className="hover:text-blue-200 transition-colors font-semibold">
+          Réserver
+        </Link>
+        {user.role === "ADMIN" && (
           <Link href="/admin" className="hover:text-blue-200 transition-colors">
             Administration
           </Link>
@@ -24,7 +26,7 @@ export default function Navbar() {
       </div>
       <div className="flex gap-4 items-center">
         <span className="text-sm">
-          Bonjour, {user.prenom} {user.nom}
+          Bonjour, {user.prenom} {user.nom} ({user.role})
         </span>
         <button 
           onClick={logout}
