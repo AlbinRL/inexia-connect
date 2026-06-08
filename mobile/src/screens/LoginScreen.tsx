@@ -3,11 +3,12 @@ import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator, Alert 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
 import { api } from '../services/api';
-import { saveToken } from '../services/auth';
+import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export function LoginScreen({ navigation }: Props) {
+  const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -15,9 +16,9 @@ export function LoginScreen({ navigation }: Props) {
   const handleLogin = async () => {
     try {
       setLoading(true);
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/auth/login', { email, motDePasse: password });
       if (response.data?.access_token) {
-        await saveToken(response.data.access_token);
+        await signIn(response.data.access_token, response.data.utilisateur);
         navigation.replace('Home');
       } else {
         Alert.alert('Connexion impossible', 'Réponse de connexion invalide.');

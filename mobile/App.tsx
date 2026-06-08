@@ -1,11 +1,12 @@
-import 'react-native-gesture-handler';
 import React from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { ReservationScreen } from './src/screens/ReservationScreen';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -28,16 +29,39 @@ const theme = {
   },
 };
 
+function AppNavigator() {
+  const { token, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5F7FB' }}>
+        <ActivityIndicator size="large" color="#1E3A8A" />
+      </View>
+    );
+  }
+
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {token ? (
+        <>
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Reservation" component={ReservationScreen} />
+        </>
+      ) : (
+        <Stack.Screen name="Login" component={LoginScreen} />
+      )}
+    </Stack.Navigator>
+  );
+}
+
 export default function App() {
   return (
     <SafeAreaProvider>
-      <NavigationContainer theme={theme}>
-        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Reservation" component={ReservationScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <AuthProvider>
+        <NavigationContainer theme={theme}>
+          <AppNavigator />
+        </NavigationContainer>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }
