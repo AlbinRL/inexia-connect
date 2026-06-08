@@ -11,6 +11,12 @@ function formatDateShort(value: string) {
   return new Date(value).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Paris' });
 }
 
+function isToday(value: string) {
+  const current = new Date();
+  const date = new Date(value);
+  return current.toDateString() === date.toDateString();
+}
+
 export function DashboardScreen({ navigation }: Props) {
   const { user } = useAuth();
   const [reservations, setReservations] = useState<MobileReservation[]>([]);
@@ -40,31 +46,53 @@ export function DashboardScreen({ navigation }: Props) {
       .slice(0, 10);
   }, [reservations]);
 
+  const todayReservations = upcoming.filter((reservation) => isToday(reservation.dateDebut));
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Tableau de bord</Text>
+        <View>
+          <Text style={styles.title}>Planning</Text>
+          <Text style={styles.subtitle}>{user ? `${user.prenom} ${user.nom}` : 'collaborateur'}</Text>
+        </View>
         <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>Retour</Text>
         </Pressable>
       </View>
 
-      <Text style={styles.subtitle}>Bonjour {user ? `${user.prenom} ${user.nom}` : 'collaborateur'}</Text>
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Aujourd’hui</Text>
+        {loading ? (
+          <ActivityIndicator color="#1E3A8A" />
+        ) : todayReservations.length === 0 ? (
+          <Text style={styles.emptyText}>Aucune réservation aujourd’hui.</Text>
+        ) : (
+          todayReservations.map((reservation) => (
+            <Pressable key={reservation.id} style={styles.rowItem} onPress={() => navigation.navigate('Reservation', { reservationId: reservation.id })}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.rowTitle}>{reservation.salle.nom}</Text>
+                <Text style={styles.rowMeta}>{formatDateShort(reservation.dateDebut)} → {formatDateShort(reservation.dateFin)}</Text>
+              </View>
+              <Text style={styles.rowStatus}>{reservation.status}</Text>
+            </Pressable>
+          ))
+        )}
+      </View>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Prochaines réservations</Text>
+        <Text style={styles.sectionTitle}>À venir</Text>
         {loading ? (
           <ActivityIndicator color="#1E3A8A" />
         ) : upcoming.length === 0 ? (
-          <Text style={styles.emptyText}>Aucune réservation à venir.</Text>
+          <Text style={styles.emptyText}>Aucune réservation planifiée.</Text>
         ) : (
-          upcoming.map((r) => (
-            <Pressable key={r.id} style={styles.rowItem} onPress={() => navigation.navigate('Reservation', { reservationId: r.id })}>
+          upcoming.slice(0, 5).map((reservation) => (
+            <Pressable key={reservation.id} style={styles.rowItem} onPress={() => navigation.navigate('Reservation', { reservationId: reservation.id })}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.rowTitle}>{r.salle.nom}</Text>
-                <Text style={styles.rowMeta}>{formatDateShort(r.dateDebut)} → {formatDateShort(r.dateFin)}</Text>
+                <Text style={styles.rowTitle}>{reservation.salle.nom}</Text>
+                <Text style={styles.rowMeta}>{formatDateShort(reservation.dateDebut)}</Text>
               </View>
-              <Text style={styles.rowStatus}>{r.status}</Text>
+              <Text style={styles.rowStatus}>{reservation.status}</Text>
             </Pressable>
           ))
         )}

@@ -59,6 +59,26 @@ export type MobileReservation = {
   };
 };
 
+export type MobileSite = {
+  id: number;
+  nom: string;
+  ville?: string | null;
+};
+
+export type MobileMateriel = {
+  id: number;
+  nom: string;
+  quantiteTotale?: number;
+  siteId?: number;
+};
+
+export type RoomPayload = {
+  nom: string;
+  capacite: number;
+  siteId: number;
+  equipements?: Array<{ materielId: number; quantite: number }>;
+};
+
 export async function fetchMyReservations() {
   const response = await api.get<MobileReservation[]>('/reservations/me');
   return response.data;
@@ -68,6 +88,31 @@ export async function fetchRooms(siteId?: number | null) {
   const response = await api.get<MobileRoom[]>('/salles', {
     params: siteId ? { siteId } : undefined,
   });
+  return response.data;
+}
+
+export async function fetchSites() {
+  const response = await api.get<MobileSite[]>('/sites');
+  return response.data;
+}
+
+export async function fetchMateriel() {
+  const response = await api.get<MobileMateriel[]>('/materiel');
+  return response.data;
+}
+
+export async function createRoom(payload: RoomPayload) {
+  const response = await api.post('/salles', payload);
+  return response.data;
+}
+
+export async function updateRoom(roomId: number, payload: RoomPayload) {
+  const response = await api.put(`/salles/${roomId}`, payload);
+  return response.data;
+}
+
+export async function deleteRoom(roomId: number) {
+  const response = await api.delete(`/salles/${roomId}`);
   return response.data;
 }
 

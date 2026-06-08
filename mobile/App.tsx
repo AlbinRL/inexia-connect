@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { ReservationScreen } from './src/screens/ReservationScreen';
+import { DirectorRoomsScreen } from './src/screens/DirectorRoomsScreen';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 
 export type RootStackParamList = {
@@ -13,6 +14,7 @@ export type RootStackParamList = {
   Home: undefined;
   Reservation: { reservationId?: number } | undefined;
   Dashboard: undefined;
+  DirectorRooms: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -47,6 +49,7 @@ function AppNavigator() {
         <>
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Dashboard" component={require('./src/screens/DashboardScreen').DashboardScreen} />
+          <Stack.Screen name="DirectorRooms" component={DirectorRoomsScreen} />
           <Stack.Screen name="Reservation" component={ReservationScreen} />
         </>
       ) : (

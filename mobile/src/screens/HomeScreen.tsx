@@ -77,6 +77,14 @@ export function HomeScreen({ navigation }: Props) {
         <Pressable style={styles.button} onPress={() => navigation.navigate('Reservation')}>
           <Text style={styles.buttonText}>+ Nouvelle réservation</Text>
         </Pressable>
+        <Pressable style={styles.secondaryButton} onPress={() => navigation.navigate('Dashboard')}>
+          <Text style={styles.secondaryButtonText}>Planning</Text>
+        </Pressable>
+        {user?.role === 'DIRECTEUR' ? (
+          <Pressable style={styles.secondaryButton} onPress={() => navigation.navigate('DirectorRooms')}>
+            <Text style={styles.secondaryButtonText}>Salles</Text>
+          </Pressable>
+        ) : null}
       </View>
 
       <View style={styles.card}>
@@ -106,7 +114,7 @@ const styles = StyleSheet.create({
   text: { fontSize: 16, color: '#52627D', marginBottom: 24 },
   button: { backgroundColor: '#1E3A8A', borderRadius: 14, alignItems: 'center', padding: 16 },
   buttonText: { color: '#fff', fontWeight: '700' },
-  secondaryButton: { marginTop: 12, borderRadius: 14, alignItems: 'center', padding: 16, borderWidth: 1, borderColor: '#C8D4EA' },
+  secondaryButton: { backgroundColor: '#E6ECF7', borderRadius: 14, alignItems: 'center', padding: 16 },
   secondaryButtonText: { color: '#1E3A8A', fontWeight: '700' },
   card: { backgroundColor: '#fff', borderRadius: 20, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#E2E8F3' },
   sectionTitle: { fontSize: 18, fontWeight: '800', color: '#162033', marginBottom: 12 },
