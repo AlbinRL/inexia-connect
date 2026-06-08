@@ -82,3 +82,24 @@ export async function createReservation(payload: { salleId: number; dateDebut: s
   const response = await api.post('/reservations', payload);
   return response.data;
 }
+
+export async function fetchReservation(reservationId: number) {
+  try {
+    const response = await api.get<MobileReservation>(`/reservations/${reservationId}`);
+    return response.data;
+  } catch (err: any) {
+    // If backend doesn't expose GET /reservations/:id, fallback to fetching /reservations/me and find it locally
+    if (err?.response?.status === 404) {
+      const all = await fetchMyReservations();
+      const found = all.find((r) => r.id === reservationId);
+      if (!found) throw err;
+      return found;
+    }
+    throw err;
+  }
+}
+
+export async function cancelReservation(reservationId: number) {
+  const response = await api.delete(`/reservations/${reservationId}`);
+  return response.data;
+}

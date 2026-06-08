@@ -19,6 +19,8 @@ import {
   fetchAvailability,
   fetchMyReservations,
   fetchRooms,
+  fetchReservation,
+  cancelReservation,
   MobileReservation,
   MobileRoom,
   RoomAvailability,
@@ -40,7 +42,7 @@ function formatDate(value: string) {
   });
 }
 
-export function ReservationScreen({ navigation }: Props) {
+export function ReservationScreen({ navigation, route }: Props) {
   const { user } = useAuth();
   const [reservations, setReservations] = useState<MobileReservation[]>([]);
   const [rooms, setRooms] = useState<MobileRoom[]>([]);
@@ -60,6 +62,9 @@ export function ReservationScreen({ navigation }: Props) {
   const [creating, setCreating] = useState(false);
   const [refreshingAvailability, setRefreshingAvailability] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const reservationId = route?.params?.reservationId;
+  const [reservationDetail, setReservationDetail] = useState<MobileReservation | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   const selectedRoom = useMemo(
     () => rooms.find((room) => room.id === selectedRoomId) ?? null,
@@ -102,6 +107,24 @@ export function ReservationScreen({ navigation }: Props) {
   }, []);
 
   useEffect(() => {
+    if (!reservationId) return;
+    let mounted = true;
+    const loadDetail = async () => {
+      try {
+        setLoadingDetail(true);
+        const data = await fetchReservation(reservationId);
+        if (mounted) setReservationDetail(data);
+      } catch {
+        if (mounted) setReservationDetail(null);
+      } finally {
+        if (mounted) setLoadingDetail(false);
+      }
+    };
+    loadDetail();
+    return () => { mounted = false; };
+  }, [reservationId]);
+
+  useEffect(() => {
     const refreshAvailabilityForSlot = async () => {
       const start = toUtcIso(dateStart);
       const end = toUtcIso(dateEnd);
@@ -124,6 +147,18 @@ export function ReservationScreen({ navigation }: Props) {
 
     refreshAvailabilityForSlot();
   }, [dateStart, dateEnd, selectedRoomId]);
+
+  const handleWebTimeChange = (raw: string) => {
+    // keep only digits, allow up to 4 (HHMM)
+    const digits = raw.replace(/[^0-9]/g, '').slice(0, 4);
+    if (digits.length <= 2) {
+      setWebModalTime(digits);
+      return;
+    }
+    const hh = digits.slice(0, 2);
+    const mm = digits.slice(2);
+    setWebModalTime(`${hh}:${mm}`);
+  };
 
   function formatLocalInput(date: Date) {
     const pad = (n: number) => String(n).padStart(2, '0');
@@ -173,8 +208,65 @@ export function ReservationScreen({ navigation }: Props) {
     }
   };
 
+  const handleCancel = async (reservationIdToCancel: number) => {
+    Alert.alert('Annuler la réservation', 'Es-tu sûr de vouloir annuler cette réservation ?', [
+      { text: 'Non', style: 'cancel' },
+      {
+        text: 'Oui',
+        onPress: async () => {
+          try {
+            await cancelReservation(reservationIdToCancel);
+            await loadData();
+            Alert.alert('Réservation', 'Réservation annulée.');
+            navigation.goBack();
+          } catch (e) {
+            Alert.alert('Erreur', 'Impossible d\'annuler la réservation.');
+          }
+        },
+      },
+    ]);
+  };
+
   return (
     <>
+    {reservationId ? (
+      // detail view
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Détail réservation</Text>
+          <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.backButtonText}>Retour</Text>
+          </Pressable>
+        </View>
+
+        {loadingDetail ? (
+          <ActivityIndicator color="#1E3A8A" />
+        ) : reservationDetail ? (
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>{reservationDetail.salle.nom}</Text>
+            <Text style={styles.reservationMeta}>{formatDate(reservationDetail.dateDebut)} → {formatDate(reservationDetail.dateFin)}</Text>
+            <Text style={styles.reservationStatus}>{reservationDetail.status}</Text>
+            <Text style={[styles.label, { marginTop: 12 }]}>Équipements</Text>
+            {reservationDetail.salle.equipements?.length ? (
+              reservationDetail.salle.equipements.map((eq, i) => (
+                <Text key={i} style={styles.emptyText}>{eq.materiel?.nom ?? eq.materiel?.libelle ?? 'Matériel'} x{eq.quantite}</Text>
+              ))
+            ) : (
+              <Text style={styles.emptyText}>Aucun équipement renseigné.</Text>
+            )}
+
+            {/* cancel button if cancellable */}
+            {new Date(reservationDetail.dateFin) > new Date() && reservationDetail.status !== 'CANCELLED' ? (
+              <Pressable style={[styles.button, { backgroundColor: '#E53935', marginTop: 12 }]} onPress={() => handleCancel(reservationDetail.id)}>
+                <Text style={styles.buttonText}>Annuler la réservation</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : (
+          <Text style={styles.error}>Impossible de charger le détail de la réservation.</Text>
+        )}
+      </ScrollView>
+    ) : (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Réservations</Text>
@@ -334,6 +426,7 @@ export function ReservationScreen({ navigation }: Props) {
         )}
       </View>
     </ScrollView>
+    )}
       {/* Web fallback using native input datetime-local */}
       {Platform.OS === 'web' ? (
         <>
@@ -344,35 +437,32 @@ export function ReservationScreen({ navigation }: Props) {
                 <div style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
                   <input type="date" value={webModalDate} onChange={(e: any) => setWebModalDate(e.target.value)} style={{ flex: 1, padding: 8 }} />
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                    <select value={webModalTime.split(':')[0] ?? '00'} onChange={(e: any) => {
-                      const hh = e.target.value.padStart(2, '0');
-                      const mm = webModalTime.split(':')[1] ?? '00';
-                      setWebModalTime(`${hh}:${mm}`);
-                    }} style={{ padding: 8 }}>
-                      {Array.from({ length: 24 }).map((_, i) => {
-                        const v = String(i).padStart(2, '0');
-                        return <option key={v} value={v}>{v}</option>;
-                      })}
-                    </select>
-                    <span>:</span>
-                    <select value={webModalTime.split(':')[1] ?? '00'} onChange={(e: any) => {
-                      const mm = e.target.value.padStart(2, '0');
-                      const hh = webModalTime.split(':')[0] ?? '00';
-                      setWebModalTime(`${hh}:${mm}`);
-                    }} style={{ padding: 8 }}>
-                      {Array.from({ length: 12 }).map((_, idx) => {
-                        const v = String(idx * 5).padStart(2, '0');
-                        return <option key={v} value={v}>{v}</option>;
-                      })}
-                    </select>
+                    <input
+                      type="text"
+                      value={webModalTime}
+                      onChange={(e: any) => handleWebTimeChange(e.target.value)}
+                      placeholder="HH:MM"
+                      style={{ padding: 8, width: 96 }}
+                    />
+                    <span style={{ color: '#72819B' }}>24h</span>
                   </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
                   <button onClick={() => { setShowWebStartModal(false); setShowWebEndModal(false); }} style={{ padding: '8px 12px' }}>Annuler</button>
                   <button onClick={() => {
-                    // combine date+time
-                    const [y,m,d] = webModalDate.split('-').map(Number);
-                    const [hh,mm] = webModalTime.split(':').map(Number);
+                    // normalize and validate HH:MM 24h format
+                    let normalized = webModalTime;
+                    // if user typed `9:30` -> pad to `09:30`
+                    if (/^\d:[0-5]\d$/.test(normalized)) normalized = `0${normalized}`;
+                    const timeRegex = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
+                    if (!timeRegex.test(normalized)) {
+                      // eslint-disable-next-line no-alert
+                      alert('Format invalide pour l\'heure. Utilise HH:MM en 24h (ex: 09:30).');
+                      return;
+                    }
+
+                    const [y, m, d] = webModalDate.split('-').map(Number);
+                    const [hh, mm] = normalized.split(':').map(Number);
                     const dt = new Date(y, (m || 1) - 1, d || 1, hh || 0, mm || 0);
                     if (showWebStartModal) {
                       setDateStart(formatLocalInput(dt));

@@ -11,7 +11,8 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 export type RootStackParamList = {
   Login: undefined;
   Home: undefined;
-  Reservation: undefined;
+  Reservation: { reservationId?: number } | undefined;
+  Dashboard: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -45,6 +46,7 @@ function AppNavigator() {
       {token ? (
         <>
           <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Dashboard" component={require('./src/screens/DashboardScreen').DashboardScreen} />
           <Stack.Screen name="Reservation" component={ReservationScreen} />
         </>
       ) : (
