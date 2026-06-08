@@ -70,12 +70,14 @@ let AuthService = class AuthService {
                 nom: data.nom,
                 prenom: data.prenom,
                 role: 'COLLABORATEUR',
+                siteId: data.siteId ?? null,
             },
         });
         const payload = {
             sub: utilisateur.id,
             email: utilisateur.email,
             role: utilisateur.role,
+            siteId: utilisateur.siteId ?? null,
         };
         return {
             access_token: this.jwtService.sign(payload),
@@ -84,6 +86,7 @@ let AuthService = class AuthService {
                 nom: utilisateur.nom,
                 prenom: utilisateur.prenom,
                 role: utilisateur.role,
+                siteId: utilisateur.siteId ?? null,
             },
         };
     }
@@ -99,6 +102,7 @@ let AuthService = class AuthService {
             sub: utilisateur.id,
             email: utilisateur.email,
             role: utilisateur.role,
+            siteId: utilisateur.siteId ?? null,
         };
         return {
             access_token: this.jwtService.sign(payload),
@@ -107,6 +111,7 @@ let AuthService = class AuthService {
                 nom: utilisateur.nom,
                 prenom: utilisateur.prenom,
                 role: utilisateur.role,
+                siteId: utilisateur.siteId ?? null,
             },
         };
     }

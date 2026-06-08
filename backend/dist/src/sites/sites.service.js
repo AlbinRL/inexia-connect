@@ -30,6 +30,43 @@ let SitesService = class SitesService {
             },
         });
     }
+    findOne(id) {
+        return this.prisma.site.findUnique({
+            where: { id },
+            include: {
+                salles: {
+                    include: {
+                        equipements: { include: { materiel: true } },
+                    },
+                },
+            },
+        });
+    }
+    async getStats(siteId, days = 7) {
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - (days - 1));
+        const sallesCount = await this.prisma.salle.count({ where: { siteId } });
+        const reservations = await this.prisma.reservation.findMany({
+            where: {
+                date: { gte: new Date(start.setHours(0, 0, 0, 0)), lt: new Date(end.setHours(23, 59, 59, 999)) },
+            },
+            include: { salle: true },
+        });
+        const points = [];
+        for (let i = 0; i < days; i++) {
+            const day = new Date();
+            day.setDate(start.getDate() + i);
+            day.setHours(0, 0, 0, 0);
+            const next = new Date(day);
+            next.setDate(day.getDate() + 1);
+            const count = reservations.filter((r) => r.salle.siteId === siteId && r.date >= day && r.date < next).length;
+            const denom = Math.max(1, sallesCount);
+            const taux = +(count / denom).toFixed(3);
+            points.push({ date: day.toISOString().split('T')[0], taux });
+        }
+        return { points };
+    }
 };
 exports.SitesService = SitesService;
 exports.SitesService = SitesService = __decorate([

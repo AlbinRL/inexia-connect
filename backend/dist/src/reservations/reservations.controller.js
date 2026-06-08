@@ -32,8 +32,8 @@ let ReservationsController = class ReservationsController {
         }
         return this.reservationsService.findByUser(userId);
     }
-    async findAll() {
-        return this.reservationsService.findAll();
+    async findAll(query) {
+        return this.reservationsService.findAll({ siteId: query.siteId ? Number(query.siteId) : undefined, date: query.date });
     }
     async remove(id) {
         return this.reservationsService.remove(id);
@@ -68,8 +68,9 @@ __decorate([
 __decorate([
     (0, roles_decorator_1.Roles)('ADMIN', 'DIRECTEUR'),
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ReservationsController.prototype, "findAll", null);
 __decorate([

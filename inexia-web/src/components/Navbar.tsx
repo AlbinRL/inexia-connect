@@ -23,6 +23,11 @@ export default function Navbar() {
             Administration
           </Link>
         )}
+        {user.role === "DIRECTEUR" && (
+          <Link href="/directeur" className="hover:text-blue-200 transition-colors">
+            Espace Directeur
+          </Link>
+        )}
       </div>
       <div className="flex gap-4 items-center">
         <span className="text-sm">

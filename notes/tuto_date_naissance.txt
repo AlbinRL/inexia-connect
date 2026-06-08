@@ -1,0 +1,65 @@
+Tuto : Propager `date_naissance` (Prisma → backend → frontend)
+
+But
+Ajouter le champ `date_naissance` dans la base puis le propager jusqu'à l'affichage.
+
+1) Prisma — schema + migration
+- Édite : backend/prisma/schema.prisma
+  - Dans le modèle `Utilisateur` ajoute :
+    date_naissance DateTime?
+- Génère et applique la migration (dev) :
+  cd backend
+  npx prisma migrate dev --name add-date-naissance
+  npx prisma generate
+
+2) Backend — inclure le champ dans les réponses
+- Fichiers à modifier :
+  - backend/src/auth/auth.service.ts (login/register) : inclure `date_naissance` dans l'objet utilisateur renvoyé avec le token.
+  - backend/src/users/users.service.ts : dans les `findOne` / `findAll` / autres sélections Prisma, ajoute `date_naissance: true` au `select`.
+  - Si tu as des DTOs (create/update), ajoute la propriété (Date | string) si nécessaire.
+
+Exemple (Prisma select) :
+  return this.prisma.utilisateur.findUnique({
+    where: { id },
+    select: { id: true, nom: true, prenom: true, role: true, date_naissance: true },
+  });
+
+3) Backend — format JSON
+- Prisma renvoie un objet `Date`; côté HTTP tu peux renvoyer l'ISO :
+  user.date_naissance = user.date_naissance ? user.date_naissance.toISOString() : null;
+- Ou laisse le fetch/JSON gérer la conversion (le front attendra une string ISO).
+
+4) Frontend — types & stockage
+- Fichier : inexia-web/src/context/AuthContext.tsx
+  - Met à jour le type `User` :
+    date_naissance?: string; // ISO
+  - Lorsque tu sauvegardes l'utilisateur en `localStorage`, la propriété sera persistée.
+
+5) Frontend — affichage (Navbar)
+- Fichier : inexia-web/src/components/Navbar.tsx
+  - Vérifie l'existence :
+    {user?.date_naissance && (
+      <span>{new Date(user.date_naissance).toLocaleDateString('fr-FR')}</span>
+    )}
+- Option : formater avec `Intl.DateTimeFormat` si besoin.
+
+6) Redémarrer & vérifier
+- Redémarre le backend puis le frontend :
+  cd backend
+  npm run start:dev
+
+  cd inexia-web
+  npm run dev
+
+- Vider `localStorage` ou se déconnecter, puis se reconnecter pour récupérer le nouvel objet `user` contenant `date_naissance`.
+- Vérifier que :
+  - `GET /me` ou `GET /utilisateurs/:id` renvoie `date_naissance`.
+  - Navbar affiche la date correctement formatée.
+
+7) Pièges / notes
+- Les anciennes lignes peuvent avoir `date_naissance = null` → toujours tester avant d'afficher.
+- Si tu veux camelCase côté client, mappe `date_naissance` → `dateNaissance` après fetch.
+- Pense à ajouter des tests ou vérifier via Postman / navigateur si les données sont bien renvoyées.
+
+---
+Fait: créer ce fichier de notes. Si tu veux, j'applique les modifications automatiquement (patchs) et je lance la migration.

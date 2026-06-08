@@ -19,6 +19,7 @@ export class AuthService {
     motDePasse: string;
     nom: string;
     prenom: string;
+    siteId?: number;
   }) {
     // 1. Vérifier si l'utilisateur existe déjà
     const existingUser = await this.prisma.utilisateur.findUnique({
@@ -41,6 +42,7 @@ export class AuthService {
         nom: data.nom,
         prenom: data.prenom,
         role: 'COLLABORATEUR',
+        siteId: data.siteId ?? null,
       },
     });
 
@@ -49,6 +51,7 @@ export class AuthService {
       sub: utilisateur.id,
       email: utilisateur.email,
       role: utilisateur.role,
+      siteId: utilisateur.siteId ?? null,
     };
 
     // 5. Renvoyer le token et les infos
@@ -59,6 +62,7 @@ export class AuthService {
         nom: utilisateur.nom,
         prenom: utilisateur.prenom,
         role: utilisateur.role,
+        siteId: utilisateur.siteId ?? null,
       },
     };
   }
@@ -82,6 +86,7 @@ export class AuthService {
       sub: utilisateur.id,
       email: utilisateur.email,
       role: utilisateur.role,
+      siteId: utilisateur.siteId ?? null,
     };
 
     // 4. On renvoie le token et les infos utiles (sans le mot de passe !)
@@ -92,6 +97,7 @@ export class AuthService {
         nom: utilisateur.nom,
         prenom: utilisateur.prenom,
         role: utilisateur.role,
+        siteId: utilisateur.siteId ?? null,
       },
     };
   }

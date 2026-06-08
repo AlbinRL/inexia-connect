@@ -9,6 +9,7 @@ export declare class AuthService {
         motDePasse: string;
         nom: string;
         prenom: string;
+        siteId?: number;
     }): Promise<{
         access_token: string;
         utilisateur: {
@@ -16,6 +17,7 @@ export declare class AuthService {
             nom: string;
             prenom: string;
             role: import("@prisma/client").$Enums.Role;
+            siteId: number | null;
         };
     }>;
     login(email: string, motDePasse: string): Promise<{
@@ -25,6 +27,7 @@ export declare class AuthService {
             nom: string;
             prenom: string;
             role: import("@prisma/client").$Enums.Role;
+            siteId: number | null;
         };
     }>;
 }

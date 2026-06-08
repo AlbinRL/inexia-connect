@@ -20,8 +20,22 @@ export class ReservationsService {
     });
   }
 
-  async findAll() {
+  async findAll(filters?: { siteId?: number; date?: string }) {
+    const where: any = {};
+
+    if (filters?.siteId) {
+      where.salle = { siteId: filters.siteId };
+    }
+
+    if (filters?.date) {
+      const day = new Date(filters.date);
+      const next = new Date(day);
+      next.setDate(day.getDate() + 1);
+      where.date = { gte: day, lt: next };
+    }
+
     return this.prisma.reservation.findMany({
+      where,
       orderBy: { date: 'desc' },
       include: {
         utilisateur: {

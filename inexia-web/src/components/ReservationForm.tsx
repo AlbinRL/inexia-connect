@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 
 // --- DONNÉES SIMULÉES (Mocks) POUR LA DÉMONSTRATION ---
 // Ces données simulent ce que l"API renverrait.
@@ -27,11 +27,11 @@ const SALLES = [
 
 export default function ReservationForm() {
   const [step, setStep] = useState(1);
-  const [selectedSiteId, setSelectedSiteId] = useState("");
-  const [selectedEquipments, setSelectedEquipments] = useState([]);
-  const [selectedSalleId, setSelectedSalleId] = useState(null);
+  const [selectedSiteId, setSelectedSiteId] = useState<number | "">("");
+  const [selectedEquipments, setSelectedEquipments] = useState<number[]>([]);
+  const [selectedSalleId, setSelectedSalleId] = useState<number | null>(null);
   const [date, setDate] = useState("");
-  const [message, setMessage] = useState(null);
+  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   // On filtre les salles avec la méthode native .filter
   const filteredSalles = SALLES.filter((salle) => {
@@ -42,7 +42,7 @@ export default function ReservationForm() {
     return matchSite && matchEquipement;
   });
 
-  const handleEquipmentChange = (equipId) => {
+  const handleEquipmentChange = (equipId: number) => {
     setSelectedEquipments((prev) => {
       return prev.includes(equipId) 
         ? prev.filter((id) => id !== equipId) 
@@ -50,12 +50,12 @@ export default function ReservationForm() {
     });
   };
 
-  const handleSelectSalle = (salleId) => {
+  const handleSelectSalle = (salleId: number) => {
     setSelectedSalleId(salleId);
     setStep(2);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
 

@@ -6,13 +6,13 @@ export declare class ReservationsService {
     findByUserId(userId: number): Promise<({
         salle: {
             site: {
-                id: number;
                 nom: string;
                 ville: string;
+                id: number;
             };
         } & {
-            id: number;
             nom: string;
+            id: number;
             capacite: number;
             siteId: number;
         };
@@ -22,22 +22,25 @@ export declare class ReservationsService {
         utilisateurId: number;
         salleId: number;
     })[]>;
-    findAll(): Promise<({
-        utilisateur: {
-            id: number;
-            nom: string;
-            prenom: string;
-        };
+    findAll(filters?: {
+        siteId?: number;
+        date?: string;
+    }): Promise<({
         salle: {
             site: {
-                id: number;
                 nom: string;
+                id: number;
             };
         } & {
-            id: number;
             nom: string;
+            id: number;
             capacite: number;
             siteId: number;
+        };
+        utilisateur: {
+            nom: string;
+            id: number;
+            prenom: string;
         };
     } & {
         id: number;
@@ -46,21 +49,21 @@ export declare class ReservationsService {
         salleId: number;
     })[]>;
     findByUser(userId: number): Promise<({
-        utilisateur: {
-            id: number;
-            nom: string;
-            prenom: string;
-        };
         salle: {
             site: {
-                id: number;
                 nom: string;
+                id: number;
             };
         } & {
-            id: number;
             nom: string;
+            id: number;
             capacite: number;
             siteId: number;
+        };
+        utilisateur: {
+            nom: string;
+            id: number;
+            prenom: string;
         };
     } & {
         id: number;

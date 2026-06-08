@@ -16,5 +16,6 @@ export declare class UsersController {
         prenom: string;
         email: string;
         role: import("@prisma/client").$Enums.Role;
+        siteId: number | null;
     }>;
 }

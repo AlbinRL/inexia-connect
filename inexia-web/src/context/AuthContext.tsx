@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-type User = { id: number; nom: string; prenom: string; role: string };
+type User = { id: number; nom: string; prenom: string; role: string; siteId?: number; date_naissance?: string };
 type AuthContextType = { 
   user: User | null; 
   isReady: boolean;
@@ -38,6 +38,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(userData);
     if (userData.role === 'ADMIN') {
       router.push('/admin');
+    } else if (userData.role === 'DIRECTEUR') {
+      router.push('/directeur');
     } else {
       router.push('/dashboard');
     }

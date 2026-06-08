@@ -6,24 +6,54 @@ export declare class SitesService {
         salles: ({
             equipements: ({
                 materiel: {
-                    id: number;
                     nom: string;
+                    id: number;
                 };
             } & {
                 id: number;
-                salleId: number;
-                materielId: number;
                 quantite: number;
+                materielId: number;
+                salleId: number;
             })[];
         } & {
-            id: number;
             nom: string;
+            id: number;
             capacite: number;
             siteId: number;
         })[];
     } & {
-        id: number;
         nom: string;
         ville: string;
+        id: number;
     })[]>;
+    findOne(id: number): import("@prisma/client").Prisma.Prisma__SiteClient<({
+        salles: ({
+            equipements: ({
+                materiel: {
+                    nom: string;
+                    id: number;
+                };
+            } & {
+                id: number;
+                quantite: number;
+                materielId: number;
+                salleId: number;
+            })[];
+        } & {
+            nom: string;
+            id: number;
+            capacite: number;
+            siteId: number;
+        })[];
+    } & {
+        nom: string;
+        ville: string;
+        id: number;
+    }) | null, null, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
+    getStats(siteId: number, days?: number): Promise<{
+        points: {
+            date: string;
+            taux: number;
+        }[];
+    }>;
 }

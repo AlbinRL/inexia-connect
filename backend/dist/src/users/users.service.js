@@ -31,7 +31,7 @@ let UsersService = class UsersService {
     async findOne(id) {
         const utilisateur = await this.prisma.utilisateur.findUnique({
             where: { id },
-            select: { id: true, nom: true, prenom: true, email: true, role: true },
+            select: { id: true, nom: true, prenom: true, email: true, role: true, siteId: true },
         });
         if (!utilisateur)
             throw new common_1.NotFoundException('Utilisateur introuvable');

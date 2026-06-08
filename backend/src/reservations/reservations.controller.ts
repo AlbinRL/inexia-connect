@@ -9,6 +9,7 @@ import {
   Param,
   ParseIntPipe,
   ForbiddenException,
+  Query,
 } from '@nestjs/common';
 import { ReservationsService } from './reservations.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -47,8 +48,8 @@ export class ReservationsController {
 
   @Roles('ADMIN', 'DIRECTEUR')
   @Get()
-  async findAll() {
-    return this.reservationsService.findAll();
+  async findAll(@Query() query: { siteId?: string; date?: string }) {
+    return this.reservationsService.findAll({ siteId: query.siteId ? Number(query.siteId) : undefined, date: query.date });
   }
 
   @Roles('ADMIN', 'DIRECTEUR')

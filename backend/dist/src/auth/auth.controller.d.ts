@@ -14,6 +14,7 @@ export declare class AuthController {
             nom: string;
             prenom: string;
             role: import("@prisma/client").$Enums.Role;
+            siteId: number | null;
         };
     }>;
     login(body: {
@@ -26,6 +27,7 @@ export declare class AuthController {
             nom: string;
             prenom: string;
             role: import("@prisma/client").$Enums.Role;
+            siteId: number | null;
         };
     }>;
 }
