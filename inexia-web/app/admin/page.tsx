@@ -37,6 +37,8 @@ type Reservation = {
   id: number;
   dateDebut: string;
   dateFin: string;
+  status?: 'CONFIRMED' | 'CANCELLED';
+  statut?: string;
   utilisateurId: number;
   salleId: number;
   utilisateur?: {
@@ -79,12 +81,38 @@ const formatDateTime = (value: string) => {
   return parsedDate.toLocaleString('fr-FR', {
     dateStyle: 'short',
     timeStyle: 'short',
-    timeZone: 'UTC',
+    timeZone: 'Europe/Paris',
   });
 };
 
 const formatDateRange = (dateDebut: string, dateFin: string) => {
   return `${formatDateTime(dateDebut)} → ${formatDateTime(dateFin)}`;
+};
+
+const getReservationStatusLabel = (reservation: Reservation, now: Date) => {
+  if (reservation.status === 'CANCELLED' || reservation.statut === 'Annulée') {
+    return 'Annulée';
+  }
+
+  const start = new Date(reservation.dateDebut);
+  const end = new Date(reservation.dateFin);
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return 'Confirmée';
+  }
+
+  if (now < start) return 'Confirmée';
+  if (now >= start && now <= end) return 'En cours';
+  return 'Terminée';
+};
+
+const getReservationStatusClass = (reservation: Reservation, now: Date) => {
+  const status = getReservationStatusLabel(reservation, now);
+
+  if (status === 'Annulée') return 'bg-rose-100 text-rose-800';
+  if (status === 'En cours') return 'bg-amber-100 text-amber-800';
+  if (status === 'Terminée') return 'bg-slate-200 text-slate-700';
+  return 'bg-emerald-100 text-emerald-800';
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -109,6 +137,15 @@ export default function AdminPage() {
   const [newEquipmentMaterialId, setNewEquipmentMaterialId] = useState('');
   const [newEquipmentQuantite, setNewEquipmentQuantite] = useState('1');
   const [salleEquipements, setSalleEquipements] = useState<Array<{ materielId: number; quantite: number }>>([]);
+  const [currentTime, setCurrentTime] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60_000);
+
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -489,10 +526,6 @@ export default function AdminPage() {
         <header className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-xs font-bold uppercase tracking-[0.24em] text-blue-600">Inexia-Connect</p>
           <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-950">Administration globale</h1>
-          <p className="mt-2 max-w-3xl text-sm text-slate-600">
-            Cette page permet de gérer les sites, les salles, le matériel et les réservations avec une interface simple à lire et
-            facile à expliquer.
-          </p>
         </header>
 
         <nav className="flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
@@ -533,7 +566,6 @@ export default function AdminPage() {
                     {activeTab === 'materiel' && 'Gestion du matériel'}
                     {activeTab === 'reservations' && 'Gestion des réservations'}
                   </h2>
-                  <p className="text-sm text-slate-500">Interface simple basée sur les données du backend.</p>
                 </div>
                 <button
                   type="button"
@@ -807,6 +839,7 @@ export default function AdminPage() {
                       <tr>
                         <th className="px-4 py-3">Début</th>
                         <th className="px-4 py-3">Fin</th>
+                        <th className="px-4 py-3">Statut</th>
                         <th className="px-4 py-3">Salle</th>
                         <th className="px-4 py-3">Utilisateur</th>
                         <th className="px-4 py-3">Action</th>
@@ -817,6 +850,11 @@ export default function AdminPage() {
                         <tr key={reservation.id}>
                           <td className="px-4 py-3 text-slate-600">{formatDateTime(reservation.dateDebut)}</td>
                           <td className="px-4 py-3 text-slate-600">{formatDateTime(reservation.dateFin)}</td>
+                          <td className="px-4 py-3">
+                            <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${getReservationStatusClass(reservation, currentTime)}`}>
+                              {getReservationStatusLabel(reservation, currentTime)}
+                            </span>
+                          </td>
                           <td className="px-4 py-3 font-medium text-slate-900">{reservation.salle?.nom ?? `Salle #${reservation.salleId}`}</td>
                           <td className="px-4 py-3 text-slate-600">
                             {reservation.utilisateur ? `${reservation.utilisateur.prenom} ${reservation.utilisateur.nom}` : `Utilisateur #${reservation.utilisateurId}`}
@@ -859,25 +897,6 @@ export default function AdminPage() {
                   <p className="mt-1 text-2xl font-black text-slate-950">{reservations.length}</p>
                 </div>
               </div>
-
-              <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                <p className="font-semibold text-slate-900">Structure simple</p>
-                <p className="mt-2 leading-6">
-                  Chaque onglet affiche un tableau classique et un formulaire court. Le but est d’avoir une page claire, facile
-                  à présenter et facile à maintenir.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  resetForms();
-                  setMessage('Formulaires réinitialisés.');
-                }}
-                className="mt-4 w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-              >
-                Réinitialiser les formulaires
-              </button>
             </aside>
           </div>
         )}

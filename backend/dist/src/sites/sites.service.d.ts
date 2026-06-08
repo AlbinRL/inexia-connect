@@ -68,7 +68,7 @@ export declare class SitesService {
     getStats(siteId: number, days?: number, startOffsetDays?: number): Promise<{
         points: {
             date: string;
-            taux: number;
+            reservations: number;
         }[];
     }>;
 }

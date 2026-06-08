@@ -66,7 +66,7 @@ export declare class SitesController {
     stats(id: number, days?: string, startOffset?: string): Promise<{
         points: {
             date: string;
-            taux: number;
+            reservations: number;
         }[];
     }>;
 }

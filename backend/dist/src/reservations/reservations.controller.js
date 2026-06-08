@@ -35,7 +35,20 @@ let ReservationsController = class ReservationsController {
     async findAll(query) {
         return this.reservationsService.findAll({ siteId: query.siteId ? Number(query.siteId) : undefined, date: query.date });
     }
-    async remove(id) {
+    async getAvailability(query) {
+        if (!query.dateDebut || !query.dateFin) {
+            throw new common_1.BadRequestException('Les dates de réservation sont requises');
+        }
+        return this.reservationsService.getAvailabilityForSlot(query.dateDebut, query.dateFin);
+    }
+    async remove(req, id) {
+        const reservation = await this.reservationsService.findById(id);
+        if (!reservation) {
+            throw new common_1.NotFoundException('Réservation introuvable');
+        }
+        if (req.user.sub !== reservation.utilisateurId && req.user.role !== 'ADMIN' && req.user.role !== 'DIRECTEUR') {
+            throw new common_1.ForbiddenException('Accès refusé');
+        }
         return this.reservationsService.remove(id);
     }
     async findByUser(req, userId) {
@@ -74,11 +87,18 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ReservationsController.prototype, "findAll", null);
 __decorate([
-    (0, roles_decorator_1.Roles)('ADMIN', 'DIRECTEUR'),
-    (0, common_1.Delete)(':id'),
-    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    (0, common_1.Get)('availability'),
+    __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ReservationsController.prototype, "getAvailability", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number]),
     __metadata("design:returntype", Promise)
 ], ReservationsController.prototype, "remove", null);
 __decorate([

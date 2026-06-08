@@ -74,12 +74,12 @@ export declare class SallesController {
         capacite: number;
         siteId: number;
     }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
-    remove(id: number): import("@prisma/client").Prisma.Prisma__SalleClient<{
+    remove(id: number): Promise<{
         nom: string;
         id: number;
         capacite: number;
         siteId: number;
-    }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
+    }>;
     findBySite(siteId: number): import("@prisma/client").Prisma.PrismaPromise<({
         equipements: ({
             materiel: {

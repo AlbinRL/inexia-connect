@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ReservationStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -75,12 +76,10 @@ export class SitesService {
     end.setDate(start.getDate() + (days - 1));
     end.setHours(23, 59, 59, 999);
 
-    // Fetch salles count for normalization
-    const sallesCount = await this.prisma.salle.count({ where: { siteId } });
-
     // Fetch reservations for the site in the date range
     const reservations = await this.prisma.reservation.findMany({
       where: {
+        status: ReservationStatus.CONFIRMED,
         dateDebut: { lte: end },
         dateFin: { gte: start },
       },
@@ -88,7 +87,7 @@ export class SitesService {
     });
 
     // Map dates
-    const points: { date: string; taux: number }[] = [];
+    const points: { date: string; reservations: number }[] = [];
     for (let i = 0; i < days; i++) {
       const day = new Date(start);
       day.setDate(start.getDate() + i);
@@ -97,9 +96,7 @@ export class SitesService {
       next.setDate(day.getDate() + 1);
 
       const count = reservations.filter((r) => r.salle.siteId === siteId && r.dateDebut <= next && r.dateFin >= day).length;
-      const denom = Math.max(1, sallesCount);
-      const taux = +(count / denom).toFixed(3); // simple ratio
-      points.push({ date: this.getLocalDateKey(day), taux });
+      points.push({ date: this.getLocalDateKey(day), reservations: count });
     }
 
     return { points };

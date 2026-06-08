@@ -9,7 +9,9 @@ import {
   Param,
   ParseIntPipe,
   ForbiddenException,
+  NotFoundException,
   Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { ReservationsService } from './reservations.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -52,9 +54,27 @@ export class ReservationsController {
     return this.reservationsService.findAll({ siteId: query.siteId ? Number(query.siteId) : undefined, date: query.date });
   }
 
-  @Roles('ADMIN', 'DIRECTEUR')
+  @Get('availability')
+  async getAvailability(@Query() query: { dateDebut?: string; dateFin?: string }) {
+    if (!query.dateDebut || !query.dateFin) {
+      throw new BadRequestException('Les dates de réservation sont requises');
+    }
+
+    return this.reservationsService.getAvailabilityForSlot(query.dateDebut, query.dateFin);
+  }
+
   @Delete(':id')
-  async remove(@Param('id', ParseIntPipe) id: number) {
+  async remove(@Request() req: AuthenticatedRequest, @Param('id', ParseIntPipe) id: number) {
+    const reservation = await this.reservationsService.findById(id);
+    if (!reservation) {
+      throw new NotFoundException('Réservation introuvable');
+    }
+
+    // Allow deletion if user is the owner, or has ADMIN or DIRECTEUR role
+    if (req.user.sub !== reservation.utilisateurId && req.user.role !== 'ADMIN' && req.user.role !== 'DIRECTEUR') {
+      throw new ForbiddenException('Accès refusé');
+    }
+
     return this.reservationsService.remove(id);
   }
 

@@ -85,8 +85,28 @@ let SallesService = class SallesService {
         });
     }
     remove(id) {
-        return this.prisma.salle.delete({
-            where: { id },
+        return this.prisma.$transaction(async (tx) => {
+            const salle = await tx.salle.findUnique({
+                where: { id },
+                select: {
+                    id: true,
+                    reservations: {
+                        select: { id: true },
+                    },
+                },
+            });
+            if (!salle) {
+                throw new common_1.NotFoundException('Salle introuvable');
+            }
+            if (salle.reservations.length > 0) {
+                throw new common_1.ConflictException('Cette salle a encore des réservations et ne peut pas être supprimée.');
+            }
+            await tx.equipement.deleteMany({
+                where: { salleId: id },
+            });
+            return tx.salle.delete({
+                where: { id },
+            });
         });
     }
 };

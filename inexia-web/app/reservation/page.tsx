@@ -21,6 +21,13 @@ type Equipement = {
   materiel?: Materiel | null;
 };
 
+type RoomAvailability = {
+  salleId: number;
+  capacity: number;
+  occupied: number;
+  available: number;
+};
+
 type Salle = {
   id: number;
   nom: string;
@@ -55,6 +62,9 @@ export default function ReservationPage() {
   const [search, setSearch] = useState('');
   const [reservationStart, setReservationStart] = useState('');
   const [reservationEnd, setReservationEnd] = useState('');
+  const [availabilityByRoomId, setAvailabilityByRoomId] = useState<Record<number, RoomAvailability>>({});
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -124,17 +134,88 @@ export default function ReservationPage() {
     });
   }, [allRooms, search, selectedSiteId, sites]);
 
-  const handleReservation = async (salleId: number) => {
+  const selectedSlot = useMemo(() => {
     if (!reservationStart || !reservationEnd) {
-      setMessage('Choisis une date de début et une date de fin avant de réserver.');
-      return;
+      return null;
     }
 
     const startDate = new Date(reservationStart);
     const endDate = new Date(reservationEnd);
 
     if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime()) || endDate <= startDate) {
-      setMessage('La date de fin doit être après la date de début.');
+      return null;
+    }
+
+    return { startDate, endDate };
+  }, [reservationEnd, reservationStart]);
+
+  useEffect(() => {
+    if (!selectedSlot) {
+      setAvailabilityByRoomId({});
+      setAvailabilityError('');
+      setAvailabilityLoading(false);
+      return;
+    }
+
+    let isActive = true;
+
+    const loadAvailability = async () => {
+      try {
+        setAvailabilityLoading(true);
+        setAvailabilityError('');
+
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        if (!token) {
+          return;
+        }
+
+        const availabilityUrl = new URL('http://localhost:3000/reservations/availability');
+        availabilityUrl.searchParams.set('dateDebut', selectedSlot.startDate.toISOString());
+        availabilityUrl.searchParams.set('dateFin', selectedSlot.endDate.toISOString());
+
+        const response = await fetch(availabilityUrl.toString(), {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Impossible de calculer la disponibilité.');
+        }
+
+        const payload = (await response.json()) as RoomAvailability[] | { value?: RoomAvailability[] };
+        const entries = Array.isArray(payload) ? payload : payload.value ?? [];
+
+        if (!isActive) {
+          return;
+        }
+
+        const nextAvailability = Object.fromEntries(entries.map((entry) => [entry.salleId, entry]));
+        setAvailabilityByRoomId(nextAvailability);
+      } catch (availabilityFetchError) {
+        console.error(availabilityFetchError);
+
+        if (isActive) {
+          setAvailabilityByRoomId({});
+          setAvailabilityError('La disponibilité ne peut pas être calculée pour le moment.');
+        }
+      } finally {
+        if (isActive) {
+          setAvailabilityLoading(false);
+        }
+      }
+    };
+
+    void loadAvailability();
+
+    return () => {
+      isActive = false;
+    };
+  }, [selectedSlot]);
+
+  const handleReservation = async (salleId: number) => {
+    if (!selectedSlot) {
+      setMessage('Choisis une date de début et une date de fin avant de réserver.');
       return;
     }
 
@@ -154,7 +235,11 @@ export default function ReservationPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ dateDebut: reservationStart, dateFin: reservationEnd, salleId }),
+        body: JSON.stringify({
+          dateDebut: selectedSlot.startDate.toISOString(),
+          dateFin: selectedSlot.endDate.toISOString(),
+          salleId,
+        }),
       });
 
       if (!response.ok) {
@@ -202,9 +287,6 @@ export default function ReservationPage() {
         <div className="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-blue-600">Inexia-Connect</p>
           <h1 className="mt-1 text-3xl font-black tracking-tight text-slate-950">Nouvelle réservation</h1>
-          <p className="mt-2 max-w-3xl text-sm text-slate-600">
-            Choisis une salle, vérifie son matériel et envoie la réservation directement depuis cette page.
-          </p>
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[320px_1fr]">
@@ -250,13 +332,17 @@ export default function ReservationPage() {
 
             {message ? <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">{message}</div> : null}
             {error ? <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">{error}</div> : null}
+            {availabilityError ? (
+              <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                {availabilityError}
+              </div>
+            ) : null}
           </aside>
 
           <main className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-bold text-slate-950">Salles disponibles</h2>
-                <p className="text-sm text-slate-500">{filteredRooms.length} salle(s) affichée(s)</p>
               </div>
               <button
                 type="button"
@@ -279,6 +365,20 @@ export default function ReservationPage() {
               <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
                 {filteredRooms.map((room) => {
                   const siteName = sites.find((site) => site.id === room.siteId)?.nom ?? 'Site inconnu';
+                  const availability = selectedSlot ? availabilityByRoomId[room.id] : null;
+                  const remainingPlaces = availability?.available ?? room.capacite;
+                  const isFullForSlot = Boolean(selectedSlot && availability && availability.available <= 0);
+                  const availabilityLabel = selectedSlot
+                    ? availabilityLoading && !availability
+                      ? 'Calcul de la disponibilité...'
+                      : `${remainingPlaces} place(s) restante(s) sur ce créneau`
+                    : `${room.capacite} place(s) disponibles par défaut`;
+
+                  const availabilityBoxClass = selectedSlot
+                    ? isFullForSlot
+                      ? 'border-rose-200 bg-rose-50 text-rose-800'
+                      : 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                    : 'border-slate-200 bg-slate-100 text-slate-700';
 
                   return (
                     <article key={room.id} className="rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
@@ -289,9 +389,6 @@ export default function ReservationPage() {
                             {siteName} • {room.capacite} places
                           </p>
                         </div>
-                        <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-bold text-white">
-                          Salle #{room.id}
-                        </span>
                       </div>
 
                       <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
@@ -312,13 +409,29 @@ export default function ReservationPage() {
                         )}
                       </div>
 
+                      <div className={`mt-4 rounded-xl border px-3 py-2.5 ${availabilityBoxClass}`}>
+                        <p className="text-[11px] font-bold uppercase tracking-wide opacity-80">
+                          {selectedSlot ? 'Disponibilité sur ce créneau' : 'Capacité de la salle'}
+                        </p>
+                        <p className="mt-0.5 text-sm font-semibold">{availabilityLabel}</p>
+                        {selectedSlot && availability ? (
+                          <p className="mt-0.5 text-[11px] font-medium opacity-70">
+                            {availability.occupied} réservation(s) déjà prévue(s) sur cette salle.
+                          </p>
+                        ) : null}
+                      </div>
+
                       <button
                         type="button"
                         onClick={() => void handleReservation(room.id)}
-                        disabled={reservingSalleId === room.id}
+                        disabled={reservingSalleId === room.id || isFullForSlot}
                         className="mt-4 w-full rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-400"
                       >
-                        {reservingSalleId === room.id ? 'Réservation en cours...' : 'Réserver cette salle'}
+                        {reservingSalleId === room.id
+                          ? 'Réservation en cours...'
+                          : isFullForSlot
+                            ? 'Créneau complet'
+                            : 'Réserver cette salle'}
                       </button>
                     </article>
                   );

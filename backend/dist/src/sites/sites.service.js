@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SitesService = void 0;
 const common_1 = require("@nestjs/common");
+const client_1 = require("@prisma/client");
 const prisma_service_1 = require("../prisma/prisma.service");
 let SitesService = class SitesService {
     prisma;
@@ -76,9 +77,9 @@ let SitesService = class SitesService {
         const end = new Date(start);
         end.setDate(start.getDate() + (days - 1));
         end.setHours(23, 59, 59, 999);
-        const sallesCount = await this.prisma.salle.count({ where: { siteId } });
         const reservations = await this.prisma.reservation.findMany({
             where: {
+                status: client_1.ReservationStatus.CONFIRMED,
                 dateDebut: { lte: end },
                 dateFin: { gte: start },
             },
@@ -92,9 +93,7 @@ let SitesService = class SitesService {
             const next = new Date(day);
             next.setDate(day.getDate() + 1);
             const count = reservations.filter((r) => r.salle.siteId === siteId && r.dateDebut <= next && r.dateFin >= day).length;
-            const denom = Math.max(1, sallesCount);
-            const taux = +(count / denom).toFixed(3);
-            points.push({ date: this.getLocalDateKey(day), taux });
+            points.push({ date: this.getLocalDateKey(day), reservations: count });
         }
         return { points };
     }

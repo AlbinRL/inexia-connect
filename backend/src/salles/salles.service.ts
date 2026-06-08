@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -91,8 +91,32 @@ export class SallesService {
   }
 
   remove(id: number) {
-    return this.prisma.salle.delete({
-      where: { id },
+    return this.prisma.$transaction(async (tx) => {
+      const salle = await tx.salle.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          reservations: {
+            select: { id: true },
+          },
+        },
+      });
+
+      if (!salle) {
+        throw new NotFoundException('Salle introuvable');
+      }
+
+      if (salle.reservations.length > 0) {
+        throw new ConflictException('Cette salle a encore des réservations et ne peut pas être supprimée.');
+      }
+
+      await tx.equipement.deleteMany({
+        where: { salleId: id },
+      });
+
+      return tx.salle.delete({
+        where: { id },
+      });
     });
   }
 }

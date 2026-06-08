@@ -90,10 +90,10 @@ export declare class SallesService {
         capacite: number;
         siteId: number;
     }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
-    remove(id: number): import("@prisma/client").Prisma.Prisma__SalleClient<{
+    remove(id: number): Promise<{
         nom: string;
         id: number;
         capacite: number;
         siteId: number;
-    }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
+    }>;
 }

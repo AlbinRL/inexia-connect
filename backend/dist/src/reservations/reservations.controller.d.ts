@@ -20,6 +20,17 @@ export declare class ReservationsController {
                 nom: string;
                 id: number;
             };
+            equipements: ({
+                materiel: {
+                    nom: string;
+                    id: number;
+                };
+            } & {
+                id: number;
+                quantite: number;
+                materielId: number;
+                salleId: number;
+            })[];
         } & {
             nom: string;
             id: number;
@@ -30,8 +41,11 @@ export declare class ReservationsController {
         id: number;
         dateDebut: Date;
         dateFin: Date;
+        status: import("@prisma/client").$Enums.ReservationStatus;
         utilisateurId: number;
         salleId: number;
+    } & {
+        statut: string;
     })[]>;
     findUserReservations(req: AuthenticatedRequest, userId: number): Promise<({
         utilisateur: {
@@ -44,6 +58,17 @@ export declare class ReservationsController {
                 nom: string;
                 id: number;
             };
+            equipements: ({
+                materiel: {
+                    nom: string;
+                    id: number;
+                };
+            } & {
+                id: number;
+                quantite: number;
+                materielId: number;
+                salleId: number;
+            })[];
         } & {
             nom: string;
             id: number;
@@ -54,8 +79,11 @@ export declare class ReservationsController {
         id: number;
         dateDebut: Date;
         dateFin: Date;
+        status: import("@prisma/client").$Enums.ReservationStatus;
         utilisateurId: number;
         salleId: number;
+    } & {
+        statut: string;
     })[]>;
     findAll(query: {
         siteId?: string;
@@ -81,13 +109,26 @@ export declare class ReservationsController {
         id: number;
         dateDebut: Date;
         dateFin: Date;
+        status: import("@prisma/client").$Enums.ReservationStatus;
         utilisateurId: number;
         salleId: number;
+    } & {
+        statut: string;
     })[]>;
-    remove(id: number): Promise<{
+    getAvailability(query: {
+        dateDebut?: string;
+        dateFin?: string;
+    }): Promise<{
+        salleId: number;
+        capacity: number;
+        occupied: number;
+        available: number;
+    }[]>;
+    remove(req: AuthenticatedRequest, id: number): Promise<{
         id: number;
         dateDebut: Date;
         dateFin: Date;
+        status: import("@prisma/client").$Enums.ReservationStatus;
         utilisateurId: number;
         salleId: number;
     }>;
@@ -98,6 +139,17 @@ export declare class ReservationsController {
                 ville: string;
                 id: number;
             };
+            equipements: ({
+                materiel: {
+                    nom: string;
+                    id: number;
+                };
+            } & {
+                id: number;
+                quantite: number;
+                materielId: number;
+                salleId: number;
+            })[];
         } & {
             nom: string;
             id: number;
@@ -108,8 +160,11 @@ export declare class ReservationsController {
         id: number;
         dateDebut: Date;
         dateFin: Date;
+        status: import("@prisma/client").$Enums.ReservationStatus;
         utilisateurId: number;
         salleId: number;
+    } & {
+        statut: string;
     })[]>;
     create(req: AuthenticatedRequest, dto: {
         dateDebut: string;
@@ -119,8 +174,11 @@ export declare class ReservationsController {
         id: number;
         dateDebut: Date;
         dateFin: Date;
+        status: import("@prisma/client").$Enums.ReservationStatus;
         utilisateurId: number;
         salleId: number;
+    } & {
+        statut: string;
     }>;
 }
 export {};

@@ -15,6 +15,11 @@ enum Role {
   DIRECTEUR
 }
 
+enum ReservationStatus {
+  CONFIRMED
+  CANCELLED
+}
+
 model Utilisateur {
   id           Int           @id @default(autoincrement())
   nom          String
@@ -72,6 +77,7 @@ model Reservation {
   id            Int         @id @default(autoincrement())
   dateDebut     DateTime
   dateFin       DateTime
+  status        ReservationStatus @default(CONFIRMED)
   utilisateurId Int
   utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
   salleId       Int
