@@ -30,7 +30,8 @@ export default function ReservationForm() {
   const [selectedSiteId, setSelectedSiteId] = useState<number | "">("");
   const [selectedEquipments, setSelectedEquipments] = useState<number[]>([]);
   const [selectedSalleId, setSelectedSalleId] = useState<number | null>(null);
-  const [date, setDate] = useState("");
+  const [dateDebut, setDateDebut] = useState("");
+  const [dateFin, setDateFin] = useState("");
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   // On filtre les salles avec la méthode native .filter
@@ -73,7 +74,8 @@ export default function ReservationForm() {
           "Authorization": "Bearer " + token
         },
         body: JSON.stringify({
-          date,
+          dateDebut,
+          dateFin,
           salleId: selectedSalleId,
           materielIds: selectedEquipments
         }),
@@ -86,7 +88,8 @@ export default function ReservationForm() {
       setMessage({ text: "Réservation validée avec succès !", type: "success" });
       setTimeout(() => {
         setStep(1);
-        setDate("");
+        setDateDebut("");
+        setDateFin("");
         setSelectedSalleId(null);
         setSelectedEquipments([]);
         setSelectedSiteId("");
@@ -196,13 +199,25 @@ export default function ReservationForm() {
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="date">
-              Date et Heure
+              Début de réservation
             </label>
             <input
-              id="date"
+              id="dateDebut"
               type="datetime-local"
-              value={date}
-              onChange={(e) => { setDate(e.target.value); }}
+              value={dateDebut}
+              onChange={(e) => { setDateDebut(e.target.value); }}
+              className="w-full border border-gray-300 rounded p-2.5 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              required
+            />
+
+            <label className="block text-sm font-semibold text-gray-700 mt-4 mb-2" htmlFor="dateFin">
+              Fin de réservation
+            </label>
+            <input
+              id="dateFin"
+              type="datetime-local"
+              value={dateFin}
+              onChange={(e) => { setDateFin(e.target.value); }}
               className="w-full border border-gray-300 rounded p-2.5 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               required
             />

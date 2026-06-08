@@ -53,7 +53,8 @@ export default function ReservationPage() {
   const [salles, setSalles] = useState<Salle[]>([]);
   const [selectedSiteId, setSelectedSiteId] = useState('all');
   const [search, setSearch] = useState('');
-  const [reservationDate, setReservationDate] = useState('');
+  const [reservationStart, setReservationStart] = useState('');
+  const [reservationEnd, setReservationEnd] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -124,8 +125,16 @@ export default function ReservationPage() {
   }, [allRooms, search, selectedSiteId, sites]);
 
   const handleReservation = async (salleId: number) => {
-    if (!reservationDate) {
-      setMessage('Choisis une date avant de réserver.');
+    if (!reservationStart || !reservationEnd) {
+      setMessage('Choisis une date de début et une date de fin avant de réserver.');
+      return;
+    }
+
+    const startDate = new Date(reservationStart);
+    const endDate = new Date(reservationEnd);
+
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime()) || endDate <= startDate) {
+      setMessage('La date de fin doit être après la date de début.');
       return;
     }
 
@@ -145,11 +154,22 @@ export default function ReservationPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ date: reservationDate, salleId }),
+        body: JSON.stringify({ dateDebut: reservationStart, dateFin: reservationEnd, salleId }),
       });
 
       if (!response.ok) {
-        throw new Error('La réservation a échoué.');
+        const errorBody = (await response.json().catch(() => null)) as { message?: string | string[] } | null;
+        const backendMessage = Array.isArray(errorBody?.message)
+          ? errorBody?.message[0]
+          : errorBody?.message;
+
+        if (response.status === 409) {
+          setMessage(backendMessage ?? 'La salle est déjà complète sur ce créneau.');
+        } else {
+          setMessage(backendMessage ?? 'La réservation a échoué.');
+        }
+
+        return;
       }
 
       setMessage('Réservation envoyée avec succès.');
@@ -189,11 +209,19 @@ export default function ReservationPage() {
 
         <div className="grid gap-6 xl:grid-cols-[320px_1fr]">
           <aside className="h-fit rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <label className="block text-sm font-semibold text-slate-700">Date de réservation</label>
+            <label className="block text-sm font-semibold text-slate-700">Début de réservation</label>
             <input
               type="datetime-local"
-              value={reservationDate}
-              onChange={(event) => setReservationDate(event.target.value)}
+              value={reservationStart}
+              onChange={(event) => setReservationStart(event.target.value)}
+              className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500"
+            />
+
+            <label className="mt-4 block text-sm font-semibold text-slate-700">Fin de réservation</label>
+            <input
+              type="datetime-local"
+              value={reservationEnd}
+              onChange={(event) => setReservationEnd(event.target.value)}
               className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500"
             />
 

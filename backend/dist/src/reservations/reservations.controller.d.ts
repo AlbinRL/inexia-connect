@@ -10,6 +10,11 @@ export declare class ReservationsController {
     private readonly reservationsService;
     constructor(reservationsService: ReservationsService);
     findMyReservations(req: AuthenticatedRequest): Promise<({
+        utilisateur: {
+            nom: string;
+            id: number;
+            prenom: string;
+        };
         salle: {
             site: {
                 nom: string;
@@ -21,18 +26,19 @@ export declare class ReservationsController {
             capacite: number;
             siteId: number;
         };
-        utilisateur: {
-            nom: string;
-            id: number;
-            prenom: string;
-        };
     } & {
         id: number;
-        date: Date;
+        dateDebut: Date;
+        dateFin: Date;
         utilisateurId: number;
         salleId: number;
     })[]>;
     findUserReservations(req: AuthenticatedRequest, userId: number): Promise<({
+        utilisateur: {
+            nom: string;
+            id: number;
+            prenom: string;
+        };
         salle: {
             site: {
                 nom: string;
@@ -44,14 +50,10 @@ export declare class ReservationsController {
             capacite: number;
             siteId: number;
         };
-        utilisateur: {
-            nom: string;
-            id: number;
-            prenom: string;
-        };
     } & {
         id: number;
-        date: Date;
+        dateDebut: Date;
+        dateFin: Date;
         utilisateurId: number;
         salleId: number;
     })[]>;
@@ -59,6 +61,11 @@ export declare class ReservationsController {
         siteId?: string;
         date?: string;
     }): Promise<({
+        utilisateur: {
+            nom: string;
+            id: number;
+            prenom: string;
+        };
         salle: {
             site: {
                 nom: string;
@@ -70,20 +77,17 @@ export declare class ReservationsController {
             capacite: number;
             siteId: number;
         };
-        utilisateur: {
-            nom: string;
-            id: number;
-            prenom: string;
-        };
     } & {
         id: number;
-        date: Date;
+        dateDebut: Date;
+        dateFin: Date;
         utilisateurId: number;
         salleId: number;
     })[]>;
     remove(id: number): Promise<{
         id: number;
-        date: Date;
+        dateDebut: Date;
+        dateFin: Date;
         utilisateurId: number;
         salleId: number;
     }>;
@@ -102,16 +106,19 @@ export declare class ReservationsController {
         };
     } & {
         id: number;
-        date: Date;
+        dateDebut: Date;
+        dateFin: Date;
         utilisateurId: number;
         salleId: number;
     })[]>;
     create(req: AuthenticatedRequest, dto: {
-        date: string;
+        dateDebut: string;
+        dateFin: string;
         salleId: number;
     }): Promise<{
         id: number;
-        date: Date;
+        dateDebut: Date;
+        dateFin: Date;
         utilisateurId: number;
         salleId: number;
     }>;

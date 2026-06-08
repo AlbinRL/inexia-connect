@@ -3,6 +3,7 @@ import { CreateReservationDto } from './dto/create-reservation.dto';
 export declare class ReservationsService {
     private prisma;
     constructor(prisma: PrismaService);
+    private getLocalDayBoundsFromDateKey;
     findByUserId(userId: number): Promise<({
         salle: {
             site: {
@@ -18,7 +19,8 @@ export declare class ReservationsService {
         };
     } & {
         id: number;
-        date: Date;
+        dateDebut: Date;
+        dateFin: Date;
         utilisateurId: number;
         salleId: number;
     })[]>;
@@ -26,6 +28,11 @@ export declare class ReservationsService {
         siteId?: number;
         date?: string;
     }): Promise<({
+        utilisateur: {
+            nom: string;
+            id: number;
+            prenom: string;
+        };
         salle: {
             site: {
                 nom: string;
@@ -37,18 +44,19 @@ export declare class ReservationsService {
             capacite: number;
             siteId: number;
         };
-        utilisateur: {
-            nom: string;
-            id: number;
-            prenom: string;
-        };
     } & {
         id: number;
-        date: Date;
+        dateDebut: Date;
+        dateFin: Date;
         utilisateurId: number;
         salleId: number;
     })[]>;
     findByUser(userId: number): Promise<({
+        utilisateur: {
+            nom: string;
+            id: number;
+            prenom: string;
+        };
         salle: {
             site: {
                 nom: string;
@@ -60,26 +68,24 @@ export declare class ReservationsService {
             capacite: number;
             siteId: number;
         };
-        utilisateur: {
-            nom: string;
-            id: number;
-            prenom: string;
-        };
     } & {
         id: number;
-        date: Date;
+        dateDebut: Date;
+        dateFin: Date;
         utilisateurId: number;
         salleId: number;
     })[]>;
     create(userId: number, dto: CreateReservationDto): Promise<{
         id: number;
-        date: Date;
+        dateDebut: Date;
+        dateFin: Date;
         utilisateurId: number;
         salleId: number;
     }>;
     remove(id: number): Promise<{
         id: number;
-        date: Date;
+        dateDebut: Date;
+        dateFin: Date;
         utilisateurId: number;
         salleId: number;
     }>;

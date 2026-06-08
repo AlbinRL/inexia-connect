@@ -20,8 +20,19 @@ let SallesController = class SallesController {
     constructor(sallesService) {
         this.sallesService = sallesService;
     }
-    findAll() {
+    findAll(query) {
+        if (query.siteId)
+            return this.sallesService.findBySite(Number(query.siteId));
         return this.sallesService.findAll();
+    }
+    create(body) {
+        return this.sallesService.create(body);
+    }
+    update(id, body) {
+        return this.sallesService.update(id, body);
+    }
+    remove(id) {
+        return this.sallesService.remove(id);
     }
     findBySite(siteId) {
         return this.sallesService.findBySite(siteId);
@@ -30,10 +41,33 @@ let SallesController = class SallesController {
 exports.SallesController = SallesController;
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], SallesController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], SallesController.prototype, "create", null);
+__decorate([
+    (0, common_1.Put)(':id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", void 0)
+], SallesController.prototype, "update", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], SallesController.prototype, "remove", null);
 __decorate([
     (0, common_1.Get)('site/:siteId'),
     __param(0, (0, common_1.Param)('siteId', common_1.ParseIntPipe)),

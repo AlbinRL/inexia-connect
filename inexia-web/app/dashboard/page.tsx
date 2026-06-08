@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 
 type Reservation = {
   id: string | number;
-  date: string;
+  dateDebut: string;
+  dateFin: string;
   userId?: number | string;
   utilisateurId?: number | string;
   user?: {
@@ -74,10 +75,12 @@ export default function DashboardPage() {
   if (!user) return null;
 
   const upcomingCount = reservations.length;
+  const [deletingReservationId, setDeletingReservationId] = useState<string | number | null>(null);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6">
-      <div className="mb-5 flex flex-col gap-3 rounded-3xl border border-white/10 bg-slate-950/85 p-4 text-white shadow-[0_24px_70px_-35px_rgba(15,23,42,0.7)] backdrop-blur md:flex-row md:items-center md:justify-between">
+    <div className="min-h-screen bg-white px-4 py-8 text-slate-900">
+      <div className="mx-auto max-w-6xl px-4 py-6">
+        <div className="mb-5 flex flex-col gap-3 rounded-3xl border border-white/10 bg-slate-950/85 p-4 text-white shadow-[0_24px_70px_-35px_rgba(15,23,42,0.7)] backdrop-blur md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-300">Dashboard</p>
           <h1 className="mt-1 text-2xl font-black tracking-tight md:text-3xl">Mes réservations</h1>
@@ -123,9 +126,10 @@ export default function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             {reservations.map((reservation) => {
-              const reservationDate = reservation.date ? new Date(reservation.date) : null;
-              const formattedDate = reservationDate && !Number.isNaN(reservationDate.getTime())
-                ? reservationDate.toLocaleDateString("fr-FR", {
+              const reservationStart = reservation.dateDebut ? new Date(reservation.dateDebut) : null;
+              const reservationEnd = reservation.dateFin ? new Date(reservation.dateFin) : null;
+              const formattedStartDate = reservationStart && !Number.isNaN(reservationStart.getTime())
+                ? reservationStart.toLocaleDateString("fr-FR", {
                     weekday: "short",
                     day: "numeric",
                     month: "short",
@@ -133,10 +137,19 @@ export default function DashboardPage() {
                   })
                 : "Date inconnue";
 
-              const formattedTime = reservationDate && !Number.isNaN(reservationDate.getTime())
-                ? reservationDate.toLocaleTimeString("fr-FR", {
+              const formattedStartTime = reservationStart && !Number.isNaN(reservationStart.getTime())
+                ? reservationStart.toLocaleTimeString("fr-FR", {
                     hour: "2-digit",
                     minute: "2-digit",
+                    timeZone: 'UTC',
+                  })
+                : "--:--";
+
+              const formattedEndTime = reservationEnd && !Number.isNaN(reservationEnd.getTime())
+                ? reservationEnd.toLocaleTimeString("fr-FR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    timeZone: 'UTC',
                   })
                 : "--:--";
 
@@ -159,20 +172,52 @@ export default function DashboardPage() {
 
                   <div className="grid grid-cols-2 gap-3 rounded-xl bg-slate-100 p-3 text-sm text-slate-700">
                     <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Date</p>
-                      <p className="mt-1 font-semibold text-slate-900">{formattedDate}</p>
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Début</p>
+                      <p className="mt-1 font-semibold text-slate-900">{formattedStartDate} à {formattedStartTime}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Heure</p>
-                      <p className="mt-1 font-semibold text-slate-900">{formattedTime}</p>
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Fin</p>
+                      <p className="mt-1 font-semibold text-slate-900">{formattedEndTime}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between text-xs text-slate-500">
                     <span>ID {reservation.id}</span>
-                    <span className="rounded-full bg-slate-900 px-2.5 py-1 font-semibold text-white">
-                      {reservation.salle?.site?.nom ?? "Aucun site"}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full bg-slate-900 px-2.5 py-1 font-semibold text-white">
+                        {reservation.salle?.site?.nom ?? "Aucun site"}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={deletingReservationId !== null}
+                        onClick={async () => {
+                          if (!confirm('Confirmer l\'annulation de cette réservation ?')) return;
+                          try {
+                            setDeletingReservationId(reservation.id ?? null);
+                            const token = localStorage.getItem('token');
+                            const res = await fetch(`http://localhost:3000/reservations/${reservation.id}`, {
+                              method: 'DELETE',
+                              headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+                            });
+                            if (!res.ok) {
+                              const body = await res.json().catch(() => null);
+                              const msg = Array.isArray(body?.message) ? body.message[0] : body?.message;
+                              setReservationsError(msg ?? 'Impossible d\'annuler la réservation.');
+                            } else {
+                              setReservations((prev) => prev.filter((r) => String(r.id) !== String(reservation.id)));
+                            }
+                          } catch (err) {
+                            console.error('Erreur annulation réservation', err);
+                            setReservationsError('Erreur lors de l\'annulation.');
+                          } finally {
+                            setDeletingReservationId(null);
+                          }
+                        }}
+                        className="rounded-2xl bg-rose-600 px-3 py-1 text-xs font-semibold text-white hover:bg-rose-700 disabled:opacity-50"
+                      >
+                        Annuler
+                      </button>
+                    </div>
                   </div>
                 </article>
               );
@@ -181,5 +226,6 @@ export default function DashboardPage() {
         )}
       </div>
     </div>
+  </div>
   );
 }

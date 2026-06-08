@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 
@@ -6,10 +6,17 @@ import { CreateReservationDto } from './dto/create-reservation.dto';
 export class ReservationsService {
   constructor(private prisma: PrismaService) {}
 
+  private getLocalDayBoundsFromDateKey(dateKey: string) {
+    const [year, month, day] = dateKey.split('-').map(Number);
+    const start = new Date(year, month - 1, day, 0, 0, 0, 0);
+    const end = new Date(year, month - 1, day, 23, 59, 59, 999);
+    return { start, end };
+  }
+
   async findByUserId(userId: number) {
     return this.prisma.reservation.findMany({
       where: { utilisateurId: userId },
-      orderBy: { date: 'desc' },
+      orderBy: { dateDebut: 'desc' },
       include: {
         salle: {
           include: {
@@ -28,15 +35,14 @@ export class ReservationsService {
     }
 
     if (filters?.date) {
-      const day = new Date(filters.date);
-      const next = new Date(day);
-      next.setDate(day.getDate() + 1);
-      where.date = { gte: day, lt: next };
+      const { start, end } = this.getLocalDayBoundsFromDateKey(filters.date);
+      where.dateDebut = { lte: end };
+      where.dateFin = { gte: start };
     }
 
     return this.prisma.reservation.findMany({
       where,
-      orderBy: { date: 'desc' },
+      orderBy: { dateDebut: 'desc' },
       include: {
         utilisateur: {
           select: {
@@ -62,7 +68,7 @@ export class ReservationsService {
   async findByUser(userId: number) {
     return this.prisma.reservation.findMany({
       where: { utilisateurId: userId },
-      orderBy: { date: 'asc' },
+      orderBy: { dateDebut: 'asc' },
       include: {
         salle: {
           include: {
@@ -86,12 +92,71 @@ export class ReservationsService {
   }
 
   async create(userId: number, dto: CreateReservationDto) {
+    const start = new Date(dto.dateDebut);
+    const end = new Date(dto.dateFin);
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      throw new BadRequestException('Les dates de réservation sont invalides');
+    }
+
+    if (end <= start) {
+      throw new BadRequestException('La date de fin doit être après la date de début');
+    }
+
     // On utilise une transaction interactive (tx) au lieu de this.prisma
     return this.prisma.$transaction(async (tx) => {
+      const salle = await tx.salle.findUnique({
+        where: { id: dto.salleId },
+        select: { id: true, capacite: true },
+      });
+
+      if (!salle) {
+        throw new NotFoundException('Salle introuvable');
+      }
+
+      const overlappingReservations = await tx.reservation.findMany({
+        where: {
+          salleId: dto.salleId,
+          dateDebut: { lte: end },
+          dateFin: { gte: start },
+        },
+        select: {
+          dateDebut: true,
+          dateFin: true,
+        },
+      });
+
+      const events: Array<{ time: number; delta: number }> = [];
+      for (const reservation of overlappingReservations) {
+        const clippedStart = reservation.dateDebut > start ? reservation.dateDebut : start;
+        const clippedEnd = reservation.dateFin < end ? reservation.dateFin : end;
+
+        events.push({ time: clippedStart.getTime(), delta: 1 });
+        events.push({ time: clippedEnd.getTime(), delta: -1 });
+      }
+
+      events.sort((left, right) => {
+        if (left.time !== right.time) return left.time - right.time;
+        return right.delta - left.delta; // start events (+1) before end events (-1) to be stricter on shared boundaries
+      });
+
+      let occupancy = 0;
+      let peakOccupancy = 0;
+
+      for (const event of events) {
+        occupancy += event.delta;
+        peakOccupancy = Math.max(peakOccupancy, occupancy);
+      }
+
+      if (peakOccupancy + 1 > salle.capacite) {
+        throw new ConflictException('La salle est déjà complète sur ce créneau');
+      }
+
       // 1. On crée d'abord la ligne principale : la Réservation
       const reservation = await tx.reservation.create({
         data: {
-          date: new Date(dto.date),
+          dateDebut: start,
+          dateFin: end,
           salleId: dto.salleId,
           utilisateurId: userId,
         },

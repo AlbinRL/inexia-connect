@@ -72,7 +72,7 @@ export class ReservationsController {
   @Post()
   async create(
     @Request() req: AuthenticatedRequest,
-    @Body() dto: { date: string; salleId: number },
+    @Body() dto: { dateDebut: string; dateFin: string; salleId: number },
   ) {
     // Le JwtAuthGuard décode le token et place le payload dans req.user
     // On récupère "sub" qui correspond à l'ID de l'utilisateur (défini dans auth.service.ts)

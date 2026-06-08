@@ -1,4 +1,5 @@
 export class CreateReservationDto {
-  date: string; // ou Date selon comment le front l'envoie (ex: "2026-06-10T09:00:00Z")
+  dateDebut: string; // ex: "2026-06-10T09:00"
+  dateFin: string;   // ex: "2026-06-10T10:30"
   salleId: number;
 }

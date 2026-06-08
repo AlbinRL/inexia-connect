@@ -23,11 +23,17 @@ let SitesController = class SitesController {
     findAll() {
         return this.sitesService.findAll();
     }
+    create(body) {
+        return this.sitesService.create(body);
+    }
+    remove(id) {
+        return this.sitesService.remove(id);
+    }
     findOne(id) {
         return this.sitesService.findOne(id);
     }
-    async stats(id) {
-        return this.sitesService.getStats(id);
+    async stats(id, days, startOffset) {
+        return this.sitesService.getStats(id, days ? Number(days) : undefined, startOffset ? Number(startOffset) : undefined);
     }
 };
 exports.SitesController = SitesController;
@@ -38,6 +44,20 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], SitesController.prototype, "findAll", null);
 __decorate([
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], SitesController.prototype, "create", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], SitesController.prototype, "remove", null);
+__decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
@@ -47,8 +67,10 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':id/stats'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Query)('days')),
+    __param(2, (0, common_1.Query)('startOffset')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Number, String, String]),
     __metadata("design:returntype", Promise)
 ], SitesController.prototype, "stats", null);
 exports.SitesController = SitesController = __decorate([

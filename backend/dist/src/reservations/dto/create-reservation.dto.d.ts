@@ -1,4 +1,5 @@
 export declare class CreateReservationDto {
-    date: string;
+    dateDebut: string;
+    dateFin: string;
     salleId: number;
 }

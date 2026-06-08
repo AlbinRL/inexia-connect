@@ -36,6 +36,59 @@ let SallesService = class SallesService {
             },
         });
     }
+    create(data) {
+        return this.prisma.salle.create({
+            data: {
+                nom: data.nom.trim(),
+                capacite: data.capacite,
+                siteId: data.siteId,
+                equipements: data.equipements?.length
+                    ? {
+                        create: data.equipements.map((equipement) => ({
+                            materielId: equipement.materielId,
+                            quantite: equipement.quantite,
+                        })),
+                    }
+                    : undefined,
+            },
+            include: {
+                equipements: {
+                    include: { materiel: true },
+                },
+            },
+        });
+    }
+    update(id, data) {
+        return this.prisma.salle.update({
+            where: { id },
+            data: {
+                ...(data.nom !== undefined ? { nom: data.nom.trim() } : {}),
+                ...(data.capacite !== undefined ? { capacite: data.capacite } : {}),
+                ...(data.siteId !== undefined ? { siteId: data.siteId } : {}),
+                ...(data.equipements
+                    ? {
+                        equipements: {
+                            deleteMany: {},
+                            create: data.equipements.map((equipement) => ({
+                                materielId: equipement.materielId,
+                                quantite: equipement.quantite,
+                            })),
+                        },
+                    }
+                    : {}),
+            },
+            include: {
+                equipements: {
+                    include: { materiel: true },
+                },
+            },
+        });
+    }
+    remove(id) {
+        return this.prisma.salle.delete({
+            where: { id },
+        });
+    }
 };
 exports.SallesService = SallesService;
 exports.SallesService = SallesService = __decorate([

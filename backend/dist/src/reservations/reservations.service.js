@@ -17,10 +17,16 @@ let ReservationsService = class ReservationsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
+    getLocalDayBoundsFromDateKey(dateKey) {
+        const [year, month, day] = dateKey.split('-').map(Number);
+        const start = new Date(year, month - 1, day, 0, 0, 0, 0);
+        const end = new Date(year, month - 1, day, 23, 59, 59, 999);
+        return { start, end };
+    }
     async findByUserId(userId) {
         return this.prisma.reservation.findMany({
             where: { utilisateurId: userId },
-            orderBy: { date: 'desc' },
+            orderBy: { dateDebut: 'desc' },
             include: {
                 salle: {
                     include: {
@@ -36,14 +42,13 @@ let ReservationsService = class ReservationsService {
             where.salle = { siteId: filters.siteId };
         }
         if (filters?.date) {
-            const day = new Date(filters.date);
-            const next = new Date(day);
-            next.setDate(day.getDate() + 1);
-            where.date = { gte: day, lt: next };
+            const { start, end } = this.getLocalDayBoundsFromDateKey(filters.date);
+            where.dateDebut = { lte: end };
+            where.dateFin = { gte: start };
         }
         return this.prisma.reservation.findMany({
             where,
-            orderBy: { date: 'desc' },
+            orderBy: { dateDebut: 'desc' },
             include: {
                 utilisateur: {
                     select: {
@@ -68,7 +73,7 @@ let ReservationsService = class ReservationsService {
     async findByUser(userId) {
         return this.prisma.reservation.findMany({
             where: { utilisateurId: userId },
-            orderBy: { date: 'asc' },
+            orderBy: { dateDebut: 'asc' },
             include: {
                 salle: {
                     include: {
@@ -91,10 +96,58 @@ let ReservationsService = class ReservationsService {
         });
     }
     async create(userId, dto) {
+        const start = new Date(dto.dateDebut);
+        const end = new Date(dto.dateFin);
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+            throw new common_1.BadRequestException('Les dates de réservation sont invalides');
+        }
+        if (end <= start) {
+            throw new common_1.BadRequestException('La date de fin doit être après la date de début');
+        }
         return this.prisma.$transaction(async (tx) => {
+            const salle = await tx.salle.findUnique({
+                where: { id: dto.salleId },
+                select: { id: true, capacite: true },
+            });
+            if (!salle) {
+                throw new common_1.NotFoundException('Salle introuvable');
+            }
+            const overlappingReservations = await tx.reservation.findMany({
+                where: {
+                    salleId: dto.salleId,
+                    dateDebut: { lte: end },
+                    dateFin: { gte: start },
+                },
+                select: {
+                    dateDebut: true,
+                    dateFin: true,
+                },
+            });
+            const events = [];
+            for (const reservation of overlappingReservations) {
+                const clippedStart = reservation.dateDebut > start ? reservation.dateDebut : start;
+                const clippedEnd = reservation.dateFin < end ? reservation.dateFin : end;
+                events.push({ time: clippedStart.getTime(), delta: 1 });
+                events.push({ time: clippedEnd.getTime(), delta: -1 });
+            }
+            events.sort((left, right) => {
+                if (left.time !== right.time)
+                    return left.time - right.time;
+                return right.delta - left.delta;
+            });
+            let occupancy = 0;
+            let peakOccupancy = 0;
+            for (const event of events) {
+                occupancy += event.delta;
+                peakOccupancy = Math.max(peakOccupancy, occupancy);
+            }
+            if (peakOccupancy + 1 > salle.capacite) {
+                throw new common_1.ConflictException('La salle est déjà complète sur ce créneau');
+            }
             const reservation = await tx.reservation.create({
                 data: {
-                    date: new Date(dto.date),
+                    dateDebut: start,
+                    dateFin: end,
                     salleId: dto.salleId,
                     utilisateurId: userId,
                 },

@@ -2,7 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateReservationDto = void 0;
 class CreateReservationDto {
-    date;
+    dateDebut;
+    dateFin;
     salleId;
 }
 exports.CreateReservationDto = CreateReservationDto;

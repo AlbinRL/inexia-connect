@@ -13,7 +13,7 @@ export default function Navbar() {
       <div className="flex gap-6 items-center">
         <span className="font-bold text-lg">Inexia-Connect</span>
         <Link href="/dashboard" className="hover:text-blue-200 transition-colors">
-          Mon Planning
+          Tableau de bord
         </Link>
         <Link href="/reservation" className="hover:text-blue-200 transition-colors font-semibold">
           Réserver

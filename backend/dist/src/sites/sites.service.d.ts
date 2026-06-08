@@ -2,6 +2,8 @@ import { PrismaService } from '../prisma/prisma.service';
 export declare class SitesService {
     private prisma;
     constructor(prisma: PrismaService);
+    private getLocalDateKey;
+    private getLocalDayBounds;
     findAll(): import("@prisma/client").Prisma.PrismaPromise<({
         salles: ({
             equipements: ({
@@ -50,7 +52,20 @@ export declare class SitesService {
         ville: string;
         id: number;
     }) | null, null, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
-    getStats(siteId: number, days?: number): Promise<{
+    create(data: {
+        nom: string;
+        ville: string;
+    }): import("@prisma/client").Prisma.Prisma__SiteClient<{
+        nom: string;
+        ville: string;
+        id: number;
+    }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
+    remove(id: number): import("@prisma/client").Prisma.Prisma__SiteClient<{
+        nom: string;
+        ville: string;
+        id: number;
+    }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
+    getStats(siteId: number, days?: number, startOffsetDays?: number): Promise<{
         points: {
             date: string;
             taux: number;

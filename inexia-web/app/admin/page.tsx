@@ -35,7 +35,8 @@ type Salle = {
 
 type Reservation = {
   id: number;
-  date: string;
+  dateDebut: string;
+  dateFin: string;
   utilisateurId: number;
   salleId: number;
   utilisateur?: {
@@ -78,8 +79,15 @@ const formatDateTime = (value: string) => {
   return parsedDate.toLocaleString('fr-FR', {
     dateStyle: 'short',
     timeStyle: 'short',
+    timeZone: 'UTC',
   });
 };
+
+const formatDateRange = (dateDebut: string, dateFin: string) => {
+  return `${formatDateTime(dateDebut)} → ${formatDateTime(dateFin)}`;
+};
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -127,10 +135,10 @@ export default function AdminPage() {
       }
 
       const [sitesResponse, sallesResponse, materielsResponse, reservationsResponse] = await Promise.all([
-        fetch('http://localhost:3000/sites', { headers: authHeaders }),
-        fetch('http://localhost:3000/salles', { headers: authHeaders }),
-        fetch('http://localhost:3000/materiel', { headers: authHeaders }),
-        fetch('http://localhost:3000/reservations', { headers: authHeaders }),
+        fetch(`${API_BASE}/sites`, { headers: authHeaders }),
+        fetch(`${API_BASE}/salles`, { headers: authHeaders }),
+        fetch(`${API_BASE}/materiel`, { headers: authHeaders }),
+        fetch(`${API_BASE}/reservations`, { headers: authHeaders }),
       ]);
 
       if (!sitesResponse.ok) throw new Error('Impossible de charger les sites');
@@ -196,7 +204,7 @@ export default function AdminPage() {
         }
       }
 
-      const response = await fetch('http://localhost:3000/sites', {
+      const response = await fetch(`${API_BASE}/sites`, {
         method: 'POST',
         headers: authHeaders,
         body: JSON.stringify(siteForm),
@@ -230,7 +238,7 @@ export default function AdminPage() {
         }
       }
 
-      const response = await fetch(`http://localhost:3000/sites/${siteId}`, {
+      const response = await fetch(`${API_BASE}/sites/${siteId}`, {
         method: 'DELETE',
         headers: authHeaders,
       });
@@ -269,10 +277,10 @@ export default function AdminPage() {
         }
       }
 
-      const response = await fetch('http://localhost:3000/materiel', {
+      const response = await fetch(`${API_BASE}/materiel`, {
         method: 'POST',
         headers: authHeaders,
-        body: JSON.stringify({ nom: materielForm.nom, quantiteTotale: 1, siteId: 1 }),
+        body: JSON.stringify({ nom: materielForm.nom }),
       });
 
       if (!response.ok) {
@@ -303,7 +311,7 @@ export default function AdminPage() {
         }
       }
 
-      const response = await fetch(`http://localhost:3000/materiel/${materielId}`, {
+      const response = await fetch(`${API_BASE}/materiel/${materielId}`, {
         method: 'DELETE',
         headers: authHeaders,
       });
@@ -372,7 +380,7 @@ export default function AdminPage() {
         }
       }
 
-      const response = await fetch('http://localhost:3000/salles', {
+      const response = await fetch(`${API_BASE}/salles`, {
         method: 'POST',
         headers: authHeaders,
         body: JSON.stringify({
@@ -412,7 +420,7 @@ export default function AdminPage() {
         }
       }
 
-      const response = await fetch(`http://localhost:3000/salles/${salleId}`, {
+      const response = await fetch(`${API_BASE}/salles/${salleId}`, {
         method: 'DELETE',
         headers: authHeaders,
       });
@@ -444,7 +452,7 @@ export default function AdminPage() {
         }
       }
 
-      const response = await fetch(`http://localhost:3000/reservations/${reservationId}`, {
+      const response = await fetch(`${API_BASE}/reservations/${reservationId}`, {
         method: 'DELETE',
         headers: authHeaders,
       });
@@ -797,7 +805,8 @@ export default function AdminPage() {
                   <table className="min-w-full divide-y divide-slate-200 text-sm">
                     <thead className="bg-slate-50 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
                       <tr>
-                        <th className="px-4 py-3">Date</th>
+                        <th className="px-4 py-3">Début</th>
+                        <th className="px-4 py-3">Fin</th>
                         <th className="px-4 py-3">Salle</th>
                         <th className="px-4 py-3">Utilisateur</th>
                         <th className="px-4 py-3">Action</th>
@@ -806,7 +815,8 @@ export default function AdminPage() {
                     <tbody className="divide-y divide-slate-200 bg-white">
                       {reservations.map((reservation) => (
                         <tr key={reservation.id}>
-                          <td className="px-4 py-3 text-slate-600">{formatDateTime(reservation.date)}</td>
+                          <td className="px-4 py-3 text-slate-600">{formatDateTime(reservation.dateDebut)}</td>
+                          <td className="px-4 py-3 text-slate-600">{formatDateTime(reservation.dateFin)}</td>
                           <td className="px-4 py-3 font-medium text-slate-900">{reservation.salle?.nom ?? `Salle #${reservation.salleId}`}</td>
                           <td className="px-4 py-3 text-slate-600">
                             {reservation.utilisateur ? `${reservation.utilisateur.prenom} ${reservation.utilisateur.nom}` : `Utilisateur #${reservation.utilisateurId}`}

@@ -26,6 +26,19 @@ export declare class SitesController {
         ville: string;
         id: number;
     })[]>;
+    create(body: {
+        nom: string;
+        ville: string;
+    }): import("@prisma/client").Prisma.Prisma__SiteClient<{
+        nom: string;
+        ville: string;
+        id: number;
+    }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
+    remove(id: number): import("@prisma/client").Prisma.Prisma__SiteClient<{
+        nom: string;
+        ville: string;
+        id: number;
+    }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
     findOne(id: number): import("@prisma/client").Prisma.Prisma__SiteClient<({
         salles: ({
             equipements: ({
@@ -50,7 +63,7 @@ export declare class SitesController {
         ville: string;
         id: number;
     }) | null, null, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
-    stats(id: number): Promise<{
+    stats(id: number, days?: string, startOffset?: string): Promise<{
         points: {
             date: string;
             taux: number;
