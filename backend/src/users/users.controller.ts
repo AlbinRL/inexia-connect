@@ -1,3 +1,4 @@
+// Ce fichier sert a exposer les endpoints de consultation des utilisateurs.
 import { Controller, Get, Param, ParseIntPipe, Logger } from '@nestjs/common';
 import { UsersService } from './users.service';
 

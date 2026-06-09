@@ -1,3 +1,4 @@
+// Ce fichier sert a verifier le JWT des routes protegees et injecter request.user.
 import {
   CanActivate,
   ExecutionContext,

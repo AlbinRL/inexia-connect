@@ -1,3 +1,4 @@
+// Ce fichier sert a valider le payload de creation d'utilisateur.
 import { IsEmail, IsNotEmpty, IsOptional, IsNumber, IsString } from 'class-validator';
 
 export class CreateUserDto {

@@ -1,3 +1,4 @@
+// Ce fichier sert a declarer le module Materiel (controller + service).
 import { Module } from '@nestjs/common';
 import { MaterielService } from './materiel.service';
 import { MaterielController } from './materiel.controller';

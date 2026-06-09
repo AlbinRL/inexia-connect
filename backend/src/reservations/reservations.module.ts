@@ -1,3 +1,4 @@
+// Ce fichier sert a declarer le module Reservations (controller + service).
 import { Module } from '@nestjs/common';
 import { ReservationsService } from './reservations.service';
 import { ReservationsController } from './reservations.controller';

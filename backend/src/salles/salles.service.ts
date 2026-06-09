@@ -1,3 +1,4 @@
+// Ce fichier sert a gerer la logique metier des salles et de leurs equipements.
 import {
   ConflictException,
   Injectable,

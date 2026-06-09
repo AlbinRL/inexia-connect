@@ -1,3 +1,4 @@
+// Ce fichier sert a configurer le module Auth (JWT, controller, providers).
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthService } from './auth.service';

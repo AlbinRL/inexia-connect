@@ -1,3 +1,4 @@
+// Ce fichier sert a declarer les roles autorises sur une route ou un controller.
 import { SetMetadata } from '@nestjs/common';
 import { Role } from '@prisma/client';
 

@@ -1,3 +1,4 @@
+// Ce fichier sert a declarer le module Sites (controller + service).
 import { Module } from '@nestjs/common';
 import { SitesService } from './sites.service';
 import { SitesController } from './sites.controller';

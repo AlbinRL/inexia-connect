@@ -8,62 +8,62 @@ export declare class SitesService {
         salles: ({
             equipements: ({
                 materiel: {
-                    id: number;
                     nom: string;
+                    id: number;
                 };
             } & {
                 id: number;
-                salleId: number;
                 quantite: number;
                 materielId: number;
+                salleId: number;
             })[];
         } & {
-            id: number;
             nom: string;
-            siteId: number;
+            id: number;
             capacite: number;
+            siteId: number;
         })[];
     } & {
-        id: number;
         nom: string;
         ville: string;
+        id: number;
     })[]>;
     findOne(id: number): import("@prisma/client").Prisma.Prisma__SiteClient<({
         salles: ({
             equipements: ({
                 materiel: {
-                    id: number;
                     nom: string;
+                    id: number;
                 };
             } & {
                 id: number;
-                salleId: number;
                 quantite: number;
                 materielId: number;
+                salleId: number;
             })[];
         } & {
-            id: number;
             nom: string;
-            siteId: number;
+            id: number;
             capacite: number;
+            siteId: number;
         })[];
     } & {
-        id: number;
         nom: string;
         ville: string;
+        id: number;
     }) | null, null, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
     create(data: {
         nom: string;
         ville: string;
     }): import("@prisma/client").Prisma.Prisma__SiteClient<{
-        id: number;
         nom: string;
         ville: string;
+        id: number;
     }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
     remove(id: number): import("@prisma/client").Prisma.Prisma__SiteClient<{
-        id: number;
         nom: string;
         ville: string;
+        id: number;
     }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
     getStats(siteId: number, days?: number, startOffsetDays?: number): Promise<{
         points: {

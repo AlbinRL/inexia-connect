@@ -1,3 +1,4 @@
+// Ce fichier sert a lire les donnees utilisateurs via Prisma.
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 

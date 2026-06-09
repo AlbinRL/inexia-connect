@@ -1,3 +1,4 @@
+// Ce fichier sert a gerer la logique d'authentification (hash, JWT, login/register).
 import {
   Injectable,
   UnauthorizedException,

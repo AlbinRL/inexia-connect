@@ -1,3 +1,4 @@
+// Ce fichier sert a centraliser la connexion Prisma a la base PostgreSQL.
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';

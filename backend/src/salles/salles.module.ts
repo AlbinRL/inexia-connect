@@ -1,3 +1,4 @@
+// Ce fichier sert a declarer le module Salles (controller + service).
 import { Module } from '@nestjs/common';
 import { SallesService } from './salles.service';
 import { SallesController } from './salles.controller';

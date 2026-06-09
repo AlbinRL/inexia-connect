@@ -1,3 +1,4 @@
+// Ce fichier sert a exposer les endpoints de reservations (liste, create, delete, disponibilite).
 import {
   Controller,
   Post,

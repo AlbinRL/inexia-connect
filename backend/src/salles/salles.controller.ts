@@ -1,4 +1,18 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, ParseIntPipe, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+// Ce fichier sert a exposer les endpoints de gestion des salles.
+import {
+  Body,
+  Controller,
+  Delete,
+  ForbiddenException,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { SallesService } from './salles.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -9,14 +23,20 @@ export class SallesController {
   constructor(private readonly sallesService: SallesService) {}
 
   @Get()
-  findAll(@Req() req: { user: { role: string; siteId: number | null } }, @Query() query: { siteId?: string }) {
+  findAll(
+    @Req() req: { user: { role: string; siteId: number | null } },
+    @Query() query: { siteId?: string },
+  ) {
     // DIRECTEUR: portée forcée sur son site, sans accès global.
     if (req.user.role === 'DIRECTEUR') {
-      return req.user.siteId ? this.sallesService.findBySite(req.user.siteId) : [];
+      return req.user.siteId
+        ? this.sallesService.findBySite(req.user.siteId)
+        : [];
     }
 
     // ADMIN: possibilité de filtrer par siteId, sinon liste complète.
-    if (query.siteId) return this.sallesService.findBySite(Number(query.siteId));
+    if (query.siteId)
+      return this.sallesService.findBySite(Number(query.siteId));
     return this.sallesService.findAll();
   }
 
@@ -61,7 +81,11 @@ export class SallesController {
       throw new ForbiddenException('Accès limité au site rattaché');
     }
 
-    if (req.user.role === 'DIRECTEUR' && body.siteId !== undefined && body.siteId !== req.user.siteId) {
+    if (
+      req.user.role === 'DIRECTEUR' &&
+      body.siteId !== undefined &&
+      body.siteId !== req.user.siteId
+    ) {
       throw new ForbiddenException('Accès limité au site rattaché');
     }
 
@@ -69,7 +93,10 @@ export class SallesController {
   }
 
   @Delete(':id')
-  async remove(@Param('id', ParseIntPipe) id: number, @Req() req: { user: { role: string; siteId: number | null } }) {
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: { user: { role: string; siteId: number | null } },
+  ) {
     // Même logique de portée que pour update.
     const salle = await this.sallesService.findOne(id);
     if (!salle) {
@@ -84,7 +111,10 @@ export class SallesController {
   }
 
   @Get('site/:siteId')
-  findBySite(@Param('siteId', ParseIntPipe) siteId: number, @Req() req: { user: { role: string; siteId: number | null } }) {
+  findBySite(
+    @Param('siteId', ParseIntPipe) siteId: number,
+    @Req() req: { user: { role: string; siteId: number | null } },
+  ) {
     // Endpoint pratique pour front/mobile quand un filtre par site est requis.
     if (req.user.role === 'DIRECTEUR' && req.user.siteId !== siteId) {
       throw new ForbiddenException('Accès limité au site rattaché');

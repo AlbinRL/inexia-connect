@@ -5,54 +5,54 @@ export declare class SallesService {
     findAll(): import("@prisma/client").Prisma.PrismaPromise<({
         equipements: ({
             materiel: {
-                id: number;
                 nom: string;
+                id: number;
             };
         } & {
             id: number;
-            salleId: number;
-            materielId: number;
             quantite: number;
+            materielId: number;
+            salleId: number;
         })[];
     } & {
-        id: number;
         nom: string;
+        id: number;
         capacite: number;
         siteId: number;
     })[]>;
     findBySite(siteId: number): import("@prisma/client").Prisma.PrismaPromise<({
         equipements: ({
             materiel: {
-                id: number;
                 nom: string;
+                id: number;
             };
         } & {
             id: number;
-            salleId: number;
-            materielId: number;
             quantite: number;
+            materielId: number;
+            salleId: number;
         })[];
     } & {
-        id: number;
         nom: string;
+        id: number;
         capacite: number;
         siteId: number;
     })[]>;
     findOne(id: number): import("@prisma/client").Prisma.Prisma__SalleClient<({
         equipements: ({
             materiel: {
-                id: number;
                 nom: string;
+                id: number;
             };
         } & {
             id: number;
-            salleId: number;
-            materielId: number;
             quantite: number;
+            materielId: number;
+            salleId: number;
         })[];
     } & {
-        id: number;
         nom: string;
+        id: number;
         capacite: number;
         siteId: number;
     }) | null, null, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
@@ -67,18 +67,18 @@ export declare class SallesService {
     }): import("@prisma/client").Prisma.Prisma__SalleClient<{
         equipements: ({
             materiel: {
-                id: number;
                 nom: string;
+                id: number;
             };
         } & {
             id: number;
-            salleId: number;
-            materielId: number;
             quantite: number;
+            materielId: number;
+            salleId: number;
         })[];
     } & {
-        id: number;
         nom: string;
+        id: number;
         capacite: number;
         siteId: number;
     }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
@@ -93,24 +93,24 @@ export declare class SallesService {
     }): import("@prisma/client").Prisma.Prisma__SalleClient<{
         equipements: ({
             materiel: {
-                id: number;
                 nom: string;
+                id: number;
             };
         } & {
             id: number;
-            salleId: number;
-            materielId: number;
             quantite: number;
+            materielId: number;
+            salleId: number;
         })[];
     } & {
-        id: number;
         nom: string;
+        id: number;
         capacite: number;
         siteId: number;
     }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
     remove(id: number): Promise<{
-        id: number;
         nom: string;
+        id: number;
         capacite: number;
         siteId: number;
     }>;

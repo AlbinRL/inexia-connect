@@ -1,3 +1,4 @@
+// Ce fichier sert a demarrer l'API NestJS (bootstrap global de l'application).
 // Bootstrap local: DATABASE_URL injectée avant l'initialisation de Prisma.
 process.env.DATABASE_URL =
   'postgresql://postgres.xyodrakufzmysnihukvd:Inexiaconnect2765@aws-0-eu-west-1.pooler.supabase.com:6543/postgres';

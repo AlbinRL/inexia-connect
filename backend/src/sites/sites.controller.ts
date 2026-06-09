@@ -1,3 +1,4 @@
+// Ce fichier sert a exposer les endpoints de gestion et statistiques des sites.
 import {
   Body,
   Controller,

@@ -1,3 +1,4 @@
+// Ce fichier sert a appliquer toutes les regles metier des reservations.
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';

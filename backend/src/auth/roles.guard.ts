@@ -1,3 +1,4 @@
+// Ce fichier sert a autoriser/refuser une route selon les roles declares via @Roles.
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@prisma/client';

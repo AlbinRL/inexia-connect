@@ -1,3 +1,4 @@
+// Ce fichier sert a exposer les endpoints de gestion du referentiel materiel.
 import {
   Controller,
   Get,

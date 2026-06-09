@@ -24,7 +24,9 @@ let SallesController = class SallesController {
     }
     findAll(req, query) {
         if (req.user.role === 'DIRECTEUR') {
-            return req.user.siteId ? this.sallesService.findBySite(req.user.siteId) : [];
+            return req.user.siteId
+                ? this.sallesService.findBySite(req.user.siteId)
+                : [];
         }
         if (query.siteId)
             return this.sallesService.findBySite(Number(query.siteId));
@@ -44,7 +46,9 @@ let SallesController = class SallesController {
         if (req.user.role === 'DIRECTEUR' && salle.siteId !== req.user.siteId) {
             throw new common_1.ForbiddenException('Accès limité au site rattaché');
         }
-        if (req.user.role === 'DIRECTEUR' && body.siteId !== undefined && body.siteId !== req.user.siteId) {
+        if (req.user.role === 'DIRECTEUR' &&
+            body.siteId !== undefined &&
+            body.siteId !== req.user.siteId) {
             throw new common_1.ForbiddenException('Accès limité au site rattaché');
         }
         return this.sallesService.update(id, body);

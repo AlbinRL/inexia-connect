@@ -1,3 +1,4 @@
+// Ce fichier sert a gerer la logique metier du referentiel materiel.
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Materiel } from '@prisma/client';

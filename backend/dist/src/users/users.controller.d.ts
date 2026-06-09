@@ -4,18 +4,18 @@ export declare class UsersController {
     private readonly logger;
     constructor(usersService: UsersService);
     findAll(): Promise<{
-        id: number;
-        email: string;
         nom: string;
+        id: number;
         prenom: string;
+        email: string;
         role: import("@prisma/client").$Enums.Role;
     }[]>;
     findOne(id: number): Promise<{
-        id: number;
-        email: string;
         nom: string;
-        prenom: string;
-        role: import("@prisma/client").$Enums.Role;
+        id: number;
         siteId: number | null;
+        prenom: string;
+        email: string;
+        role: import("@prisma/client").$Enums.Role;
     }>;
 }

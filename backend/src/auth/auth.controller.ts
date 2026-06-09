@@ -1,3 +1,4 @@
+// Ce fichier sert a exposer les endpoints d'authentification (register/login).
 import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 

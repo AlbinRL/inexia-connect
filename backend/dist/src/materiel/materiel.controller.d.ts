@@ -5,25 +5,25 @@ export declare class MaterielController {
     create(body: {
         nom: string;
     }): Promise<{
-        id: number;
         nom: string;
+        id: number;
     }>;
     findAll(): Promise<{
-        id: number;
         nom: string;
+        id: number;
     }[]>;
     findOne(id: number): Promise<{
-        id: number;
         nom: string;
+        id: number;
     }>;
     update(id: number, body: {
         nom?: string;
     }): Promise<{
-        id: number;
         nom: string;
+        id: number;
     }>;
     remove(id: number): Promise<{
-        id: number;
         nom: string;
+        id: number;
     }>;
 }

@@ -1,3 +1,4 @@
+// Ce fichier sert a centraliser la logique metier des sites (CRUD + stats).
 import { Injectable } from '@nestjs/common';
 import { ReservationStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
