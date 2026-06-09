@@ -3,6 +3,7 @@ import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
 import { useAuth } from '../context/AuthContext';
+import { AppHeader } from '../components/AppHeader';
 import {
   createRoom,
   deleteRoom,
@@ -220,8 +221,10 @@ export function DirectorRoomsScreen({ navigation }: Props) {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
+    <View style={styles.screen}>
+      <AppHeader subtitle={site ? `${site.nom}${site.ville ? ` • ${site.ville}` : ''}` : 'Salles'} />
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.header}>
         <View>
           <Text style={styles.title}>Gestion des salles</Text>
           <Text style={styles.text}>{site ? `${site.nom}${site.ville ? ` • ${site.ville}` : ''}` : 'Chargement du site...'}</Text>
@@ -229,9 +232,9 @@ export function DirectorRoomsScreen({ navigation }: Props) {
         <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>Retour</Text>
         </Pressable>
-      </View>
+        </View>
 
-      <View style={styles.card}>
+        <View style={styles.card}>
         <Text style={styles.sectionTitle}>Créer une salle</Text>
         <TextInput value={form.nom} onChangeText={(value) => setForm((current) => ({ ...current, nom: value }))} placeholder="Nom" style={styles.input} />
         <TextInput
@@ -265,9 +268,9 @@ export function DirectorRoomsScreen({ navigation }: Props) {
         <Pressable style={styles.primaryButton} onPress={saveRoom} disabled={saving}>
           <Text style={styles.primaryButtonText}>{saving ? 'Enregistrement...' : form.id ? 'Mettre à jour' : 'Créer la salle'}</Text>
         </Pressable>
-      </View>
+        </View>
 
-      <View style={styles.card}>
+        <View style={styles.card}>
         <Text style={styles.sectionTitle}>Salles du site</Text>
         {loading ? (
           <Text style={styles.text}>Chargement...</Text>
@@ -299,9 +302,9 @@ export function DirectorRoomsScreen({ navigation }: Props) {
             </Pressable>
           ))
         )}
-      </View>
+        </View>
 
-      <Modal visible={materialPickerRow !== null} transparent animationType="fade" onRequestClose={() => setMaterialPickerRow(null)}>
+        <Modal visible={materialPickerRow !== null} transparent animationType="fade" onRequestClose={() => setMaterialPickerRow(null)}>
         <View style={styles.modalOverlay}>
           <Pressable style={styles.modalBackdrop} onPress={() => setMaterialPickerRow(null)} />
           <View style={styles.modalCard}>
@@ -324,12 +327,14 @@ export function DirectorRoomsScreen({ navigation }: Props) {
             </ScrollView>
           </View>
         </View>
-      </Modal>
-    </ScrollView>
+        </Modal>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: '#F5F7FB' },
   container: { padding: 20, backgroundColor: '#F5F7FB' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, backgroundColor: '#F5F7FB' },
   header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 },

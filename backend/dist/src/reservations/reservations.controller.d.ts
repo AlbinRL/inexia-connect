@@ -12,31 +12,31 @@ export declare class ReservationsController {
     constructor(reservationsService: ReservationsService);
     findMyReservations(req: AuthenticatedRequest): Promise<({
         utilisateur: {
-            id: number;
             nom: string;
+            id: number;
             prenom: string;
         };
         salle: {
             site: {
-                id: number;
                 nom: string;
+                id: number;
             };
             equipements: ({
                 materiel: {
-                    id: number;
                     nom: string;
+                    id: number;
                 };
             } & {
                 id: number;
-                salleId: number;
-                materielId: number;
                 quantite: number;
+                materielId: number;
+                salleId: number;
             })[];
         } & {
-            id: number;
             nom: string;
-            siteId: number;
+            id: number;
             capacite: number;
+            siteId: number;
         };
     } & {
         id: number;
@@ -50,31 +50,31 @@ export declare class ReservationsController {
     })[]>;
     findUserReservations(req: AuthenticatedRequest, userId: number): Promise<({
         utilisateur: {
-            id: number;
             nom: string;
+            id: number;
             prenom: string;
         };
         salle: {
             site: {
-                id: number;
                 nom: string;
+                id: number;
             };
             equipements: ({
                 materiel: {
-                    id: number;
                     nom: string;
+                    id: number;
                 };
             } & {
                 id: number;
-                salleId: number;
-                materielId: number;
                 quantite: number;
+                materielId: number;
+                salleId: number;
             })[];
         } & {
-            id: number;
             nom: string;
-            siteId: number;
+            id: number;
             capacite: number;
+            siteId: number;
         };
     } & {
         id: number;
@@ -91,20 +91,20 @@ export declare class ReservationsController {
         date?: string;
     }): Promise<({
         utilisateur: {
-            id: number;
             nom: string;
+            id: number;
             prenom: string;
         };
         salle: {
             site: {
-                id: number;
                 nom: string;
+                id: number;
             };
         } & {
-            id: number;
             nom: string;
-            siteId: number;
+            id: number;
             capacite: number;
+            siteId: number;
         };
     } & {
         id: number;
@@ -136,26 +136,26 @@ export declare class ReservationsController {
     findByUser(req: AuthenticatedRequest, userId: number): Promise<({
         salle: {
             site: {
-                id: number;
                 nom: string;
                 ville: string;
+                id: number;
             };
             equipements: ({
                 materiel: {
-                    id: number;
                     nom: string;
+                    id: number;
                 };
             } & {
                 id: number;
-                salleId: number;
-                materielId: number;
                 quantite: number;
+                materielId: number;
+                salleId: number;
             })[];
         } & {
-            id: number;
             nom: string;
-            siteId: number;
+            id: number;
             capacite: number;
+            siteId: number;
         };
     } & {
         id: number;

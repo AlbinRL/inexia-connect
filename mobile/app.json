@@ -5,11 +5,20 @@
     "scheme": "inexia-mobile",
     "version": "0.1.0",
     "orientation": "portrait",
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "jsEngine": "hermes",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "updates": {
       "fallbackToCacheTimeout": 0
+    },
+    "android": {
+      "package": "com.anonymous.inexiamobile"
     }
   }
 }

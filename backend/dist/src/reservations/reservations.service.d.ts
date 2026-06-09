@@ -18,24 +18,24 @@ export declare class ReservationsService {
     findByUserId(userId: number): Promise<({
         salle: {
             site: {
-                id: number;
                 nom: string;
                 ville: string;
+                id: number;
             };
             equipements: ({
                 materiel: {
-                    id: number;
                     nom: string;
+                    id: number;
                 };
             } & {
                 id: number;
-                salleId: number;
-                materielId: number;
                 quantite: number;
+                materielId: number;
+                salleId: number;
             })[];
         } & {
-            id: number;
             nom: string;
+            id: number;
             capacite: number;
             siteId: number;
         };
@@ -53,21 +53,21 @@ export declare class ReservationsService {
         siteId?: number;
         date?: string;
     }): Promise<({
+        utilisateur: {
+            nom: string;
+            id: number;
+            prenom: string;
+        };
         salle: {
             site: {
-                id: number;
                 nom: string;
+                id: number;
             };
         } & {
-            id: number;
             nom: string;
+            id: number;
             capacite: number;
             siteId: number;
-        };
-        utilisateur: {
-            id: number;
-            nom: string;
-            prenom: string;
         };
     } & {
         id: number;
@@ -80,32 +80,32 @@ export declare class ReservationsService {
         statut: string;
     })[]>;
     findByUser(userId: number): Promise<({
+        utilisateur: {
+            nom: string;
+            id: number;
+            prenom: string;
+        };
         salle: {
             site: {
-                id: number;
                 nom: string;
+                id: number;
             };
             equipements: ({
                 materiel: {
-                    id: number;
                     nom: string;
+                    id: number;
                 };
             } & {
                 id: number;
-                salleId: number;
-                materielId: number;
                 quantite: number;
+                materielId: number;
+                salleId: number;
             })[];
         } & {
-            id: number;
             nom: string;
+            id: number;
             capacite: number;
             siteId: number;
-        };
-        utilisateur: {
-            id: number;
-            nom: string;
-            prenom: string;
         };
     } & {
         id: number;

@@ -25,7 +25,9 @@ let SitesController = class SitesController {
     }
     findAll(req) {
         if (req.user.role === 'DIRECTEUR') {
-            return req.user.siteId ? this.sitesService.findOne(req.user.siteId) : null;
+            return req.user.siteId
+                ? this.sitesService.findOne(req.user.siteId)
+                : null;
         }
         return this.sitesService.findAll();
     }

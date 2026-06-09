@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, ParseIntPipe, Post, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  ForbiddenException,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { SitesService } from './sites.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -12,7 +24,9 @@ export class SitesController {
   @Get()
   findAll(@Req() req: { user: { role: string; siteId: number | null } }) {
     if (req.user.role === 'DIRECTEUR') {
-      return req.user.siteId ? this.sitesService.findOne(req.user.siteId) : null;
+      return req.user.siteId
+        ? this.sitesService.findOne(req.user.siteId)
+        : null;
     }
 
     return this.sitesService.findAll();
@@ -31,7 +45,10 @@ export class SitesController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: { user: { role: string; siteId: number | null } }) {
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: { user: { role: string; siteId: number | null } },
+  ) {
     if (req.user.role === 'DIRECTEUR' && req.user.siteId !== id) {
       throw new ForbiddenException('Accès limité au site rattaché');
     }

@@ -3,7 +3,14 @@ import { Alert, ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
 import { useAuth } from '../context/AuthContext';
-import { cancelReservation, fetchSiteReservations, MobileReservation } from '../services/api';
+import { AppHeader } from '../components/AppHeader';
+import {
+  cancelReservation,
+  fetchSite,
+  fetchSiteReservations,
+  MobileReservation,
+  MobileSiteDetail,
+} from '../services/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'DirectorReservations'>;
 
@@ -18,6 +25,7 @@ function formatDate(value: string) {
 export function DirectorReservationsScreen({ navigation }: Props) {
   const { user } = useAuth();
   const siteId = user?.siteId ?? null;
+  const [site, setSite] = useState<MobileSiteDetail | null>(null);
   const [reservations, setReservations] = useState<MobileReservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<number | null>(null);
@@ -29,11 +37,14 @@ export function DirectorReservationsScreen({ navigation }: Props) {
 
   const load = async () => {
     if (!siteId) return;
+
     try {
       setLoading(true);
-      const data = await fetchSiteReservations(siteId);
-      setReservations(data);
+      const [siteData, reservationsData] = await Promise.all([fetchSite(siteId), fetchSiteReservations(siteId)]);
+      setSite(siteData);
+      setReservations(reservationsData);
     } catch {
+      setSite(null);
       setReservations([]);
     } finally {
       setLoading(false);
@@ -70,6 +81,28 @@ export function DirectorReservationsScreen({ navigation }: Props) {
     ]);
   };
 
+  const getStatusBadgeStyle = (value?: string | null) => {
+    const normalized = (value ?? '').toUpperCase();
+
+    if (normalized.includes('CANCEL')) return styles.statusCancelled;
+    if (normalized.includes('CONFIRM') || normalized.includes('CONFIRMED')) return styles.statusConfirmed;
+    if (normalized.includes('EN COURS')) return styles.statusInProgress;
+    if (normalized.includes('TERM')) return styles.statusFinished;
+
+    return styles.statusDefault;
+  };
+
+  const getStatusLabel = (value?: string | null) => {
+    const normalized = (value ?? '').toUpperCase();
+
+    if (normalized.includes('CANCEL')) return 'Annulée';
+    if (normalized.includes('CONFIRM') || normalized.includes('CONFIRMED')) return 'Confirmée';
+    if (normalized.includes('EN COURS')) return 'En cours';
+    if (normalized.includes('TERM')) return 'Terminée';
+
+    return value ?? '';
+  };
+
   if (user?.role !== 'DIRECTEUR') {
     return (
       <View style={styles.centered}>
@@ -93,49 +126,57 @@ export function DirectorReservationsScreen({ navigation }: Props) {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
+    <View style={styles.screen}>
+      <AppHeader subtitle={site ? `${site.nom}${site.ville ? ` • ${site.ville}` : ''}` : 'Réservations du site'} />
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Réservations du site</Text>
-          <Text style={styles.subtitle}>Toutes les réservations liées à ton site</Text>
+          <Text style={styles.title}>Réservations</Text>
+          <Text style={styles.subtitle}>{site ? `${site.nom}${site.ville ? ` • ${site.ville}` : ''}` : 'Chargement du site...'}</Text>
         </View>
         <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>Retour</Text>
         </Pressable>
-      </View>
-
-      {loading ? <ActivityIndicator color="#1E3A8A" /> : null}
-
-      {!loading && sortedReservations.length === 0 ? (
-        <View style={styles.card}>
-          <Text style={styles.emptyText}>Aucune réservation pour ce site.</Text>
         </View>
-      ) : null}
 
-      {sortedReservations.map((reservation) => (
-        <View key={reservation.id} style={styles.card}>
-          <View style={styles.rowTop}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.roomTitle}>{reservation.salle.nom}</Text>
-              <Text style={styles.meta}>{formatDate(reservation.dateDebut)} → {formatDate(reservation.dateFin)}</Text>
-              <Text style={styles.meta}>{reservation.utilisateur ? `${reservation.utilisateur.prenom} ${reservation.utilisateur.nom}` : 'Utilisateur inconnu'}</Text>
-            </View>
-            <Text style={styles.status}>{reservation.status ?? reservation.statut ?? ''}</Text>
+        {loading ? <ActivityIndicator color="#1E3A8A" /> : null}
+
+        {!loading && sortedReservations.length === 0 ? (
+          <View style={styles.card}>
+            <Text style={styles.emptyText}>Aucune réservation pour ce site.</Text>
           </View>
-          <Pressable
-            style={[styles.cancelButton, cancellingId === reservation.id && styles.cancelButtonDisabled]}
-            onPress={() => handleCancel(reservation.id, reservation.salle.nom)}
-            disabled={cancellingId === reservation.id}
-          >
-            <Text style={styles.cancelButtonText}>{cancellingId === reservation.id ? 'Annulation...' : 'Annuler'}</Text>
-          </Pressable>
-        </View>
-      ))}
-    </ScrollView>
+        ) : null}
+
+        {sortedReservations.map((reservation) => (
+          <View key={reservation.id} style={styles.card}>
+            <View style={styles.rowTop}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.roomTitle}>{reservation.salle.nom}</Text>
+                <Text style={styles.meta}>{formatDate(reservation.dateDebut)} {'->'} {formatDate(reservation.dateFin)}</Text>
+                <Text style={styles.meta}>
+                  {reservation.utilisateur ? `${reservation.utilisateur.prenom} ${reservation.utilisateur.nom}` : 'Utilisateur inconnu'}
+                </Text>
+              </View>
+              <Text style={[styles.status, getStatusBadgeStyle(reservation.status ?? reservation.statut)]}>
+                {getStatusLabel(reservation.status ?? reservation.statut)}
+              </Text>
+            </View>
+            <Pressable
+              style={[styles.cancelButton, cancellingId === reservation.id && styles.cancelButtonDisabled]}
+              onPress={() => handleCancel(reservation.id, reservation.salle.nom)}
+              disabled={cancellingId === reservation.id}
+            >
+              <Text style={styles.cancelButtonText}>{cancellingId === reservation.id ? 'Annulation...' : 'Annuler'}</Text>
+            </Pressable>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: '#F5F7FB' },
   container: { padding: 24, backgroundColor: '#F5F7FB', flexGrow: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
   title: { fontSize: 26, fontWeight: '800', color: '#162033' },
@@ -146,7 +187,20 @@ const styles = StyleSheet.create({
   rowTop: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
   roomTitle: { fontSize: 17, fontWeight: '800', color: '#162033', marginBottom: 4 },
   meta: { color: '#52627D', marginBottom: 3 },
-  status: { color: '#1E3A8A', fontWeight: '800' },
+  status: {
+    minWidth: 92,
+    textAlign: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    fontWeight: '800',
+    overflow: 'hidden',
+  },
+  statusDefault: { color: '#1E3A8A', backgroundColor: '#E6ECF7' },
+  statusConfirmed: { color: '#166534', backgroundColor: '#DCFCE7' },
+  statusCancelled: { color: '#B91C1C', backgroundColor: '#FEE2E2' },
+  statusInProgress: { color: '#92400E', backgroundColor: '#FEF3C7' },
+  statusFinished: { color: '#334155', backgroundColor: '#E2E8F0' },
   cancelButton: { marginTop: 12, backgroundColor: '#E53935', borderRadius: 14, alignItems: 'center', paddingVertical: 12 },
   cancelButtonDisabled: { opacity: 0.7 },
   cancelButtonText: { color: '#fff', fontWeight: '700' },

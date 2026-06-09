@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
 import { useAuth } from '../context/AuthContext';
+import { AppHeader } from '../components/AppHeader';
 import { fetchSite, fetchSiteReservations, MobileReservation, MobileSiteDetail } from '../services/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Direction'>;
@@ -75,8 +76,10 @@ export function DirectionScreen({ navigation }: Props) {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
+    <View style={styles.screen}>
+      <AppHeader subtitle={site ? `${site.nom}${site.ville ? ` • ${site.ville}` : ''}` : 'Direction'} />
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.header}>
         <View>
           <Text style={styles.title}>Direction</Text>
           <Text style={styles.text}>{site ? `${site.nom}${site.ville ? ` • ${site.ville}` : ''}` : 'Chargement du site...'}</Text>
@@ -84,18 +87,18 @@ export function DirectionScreen({ navigation }: Props) {
         <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>Retour</Text>
         </Pressable>
-      </View>
+        </View>
 
-      <View style={styles.actionsRow}>
+        <View style={styles.actionsRow}>
         <Pressable style={styles.actionButton} onPress={() => navigation.navigate('DirectorRooms')}>
           <Text style={styles.actionButtonText}>Salles</Text>
         </Pressable>
         <Pressable style={styles.actionButton} onPress={() => navigation.navigate('DirectorReservations')}>
           <Text style={styles.actionButtonText}>Réservations</Text>
         </Pressable>
-      </View>
+        </View>
 
-      <View style={styles.statsRow}>
+        <View style={styles.statsRow}>
         <View style={styles.statCard}>
           <Text style={styles.statValue}>{loading ? '…' : site?.salles?.length ?? 0}</Text>
           <Text style={styles.statLabel}>Salles du site</Text>
@@ -104,14 +107,16 @@ export function DirectionScreen({ navigation }: Props) {
           <Text style={styles.statValue}>{loading ? '…' : todayReservations.length}</Text>
           <Text style={styles.statLabel}>Réservations du jour</Text>
         </View>
-      </View>
+        </View>
 
-      {loading ? <ActivityIndicator color="#1E3A8A" /> : null}
-    </ScrollView>
+        {loading ? <ActivityIndicator color="#1E3A8A" /> : null}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: '#F5F7FB' },
   container: { padding: 24, backgroundColor: '#F5F7FB', flexGrow: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
   title: { fontSize: 28, fontWeight: '800', color: '#162033', marginBottom: 6 },

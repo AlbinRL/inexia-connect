@@ -4,6 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { AppHeader } from '../components/AppHeader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -32,8 +33,7 @@ export function LoginScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Inexia Connect</Text>
-      <Text style={styles.subtitle}>Version mobile collaborateur</Text>
+      <AppHeader subtitle="Version mobile collaborateur" />
       <TextInput value={email} onChangeText={setEmail} placeholder="Email" autoCapitalize="none" style={styles.input} />
       <TextInput value={password} onChangeText={setPassword} placeholder="Mot de passe" secureTextEntry style={styles.input} />
       <Pressable style={styles.button} onPress={handleLogin} disabled={loading}>
@@ -44,9 +44,7 @@ export function LoginScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: '#F5F7FB' },
-  title: { fontSize: 32, fontWeight: '800', color: '#162033', marginBottom: 8 },
-  subtitle: { fontSize: 16, color: '#52627D', marginBottom: 24 },
+  container: { flex: 1, justifyContent: 'flex-start', padding: 24, backgroundColor: '#F5F7FB' },
   input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#D8E0EE', borderRadius: 14, padding: 14, marginBottom: 12 },
   button: { backgroundColor: '#1E3A8A', borderRadius: 14, alignItems: 'center', padding: 16, marginTop: 8 },
   buttonText: { color: '#fff', fontWeight: '700' },

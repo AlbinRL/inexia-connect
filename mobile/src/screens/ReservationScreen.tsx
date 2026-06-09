@@ -14,6 +14,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
 import { useAuth } from '../context/AuthContext';
+import { AppHeader } from '../components/AppHeader';
 import {
   createReservation,
   fetchAvailability,
@@ -227,11 +228,44 @@ export function ReservationScreen({ navigation, route }: Props) {
     ]);
   };
 
+  const getStatusBadgeStyle = (value?: string | null) => {
+    const normalized = (value ?? '').toUpperCase();
+
+    if (normalized.includes('CANCEL')) {
+      return styles.statusCancelled;
+    }
+
+    if (normalized.includes('CONFIRM') || normalized.includes('CONFIRMED')) {
+      return styles.statusConfirmed;
+    }
+
+    if (normalized.includes('EN COURS')) {
+      return styles.statusInProgress;
+    }
+
+    if (normalized.includes('TERM')) {
+      return styles.statusFinished;
+    }
+
+    return styles.statusDefault;
+  };
+
+  const getStatusLabel = (value?: string | null) => {
+    const normalized = (value ?? '').toUpperCase();
+
+    if (normalized.includes('CANCEL')) return 'Annulée';
+    if (normalized.includes('CONFIRM') || normalized.includes('CONFIRMED')) return 'Confirmée';
+    if (normalized.includes('EN COURS')) return 'En cours';
+    if (normalized.includes('TERM')) return 'Terminée';
+    return value ?? '';
+  };
+
   return (
     <>
     {reservationId ? (
       // detail view
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={styles.container} stickyHeaderIndices={[0]}>
+        <AppHeader subtitle={user ? `${user.prenom} ${user.nom}` : 'Réservations'} />
         <View style={styles.header}>
           <Text style={styles.title}>Détail réservation</Text>
           <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -245,7 +279,7 @@ export function ReservationScreen({ navigation, route }: Props) {
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>{reservationDetail.salle.nom}</Text>
             <Text style={styles.reservationMeta}>{formatDate(reservationDetail.dateDebut)} → {formatDate(reservationDetail.dateFin)}</Text>
-            <Text style={styles.reservationStatus}>{reservationDetail.status}</Text>
+            <Text style={[styles.reservationStatus, getStatusBadgeStyle(reservationDetail.status)]}>{getStatusLabel(reservationDetail.status)}</Text>
             <Text style={[styles.label, { marginTop: 12 }]}>Équipements</Text>
             {reservationDetail.salle.equipements?.length ? (
               reservationDetail.salle.equipements.map((eq, i) => (
@@ -267,7 +301,8 @@ export function ReservationScreen({ navigation, route }: Props) {
         )}
       </ScrollView>
     ) : (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={styles.container} stickyHeaderIndices={[0]}>
+      <AppHeader subtitle={user ? `${user.prenom} ${user.nom}` : 'Réservations'} />
       <View style={styles.header}>
         <Text style={styles.title}>Réservations</Text>
         <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -533,5 +568,20 @@ const styles = StyleSheet.create({
   reservationItem: { borderTopWidth: 1, borderTopColor: '#EEF2F8', paddingTop: 12, marginTop: 12 },
   reservationTitle: { fontWeight: '800', color: '#162033', marginBottom: 4 },
   reservationMeta: { color: '#52627D', marginBottom: 4 },
-  reservationStatus: { color: '#1E3A8A', fontWeight: '700' },
+  reservationStatus: {
+    alignSelf: 'flex-start',
+    marginTop: 6,
+    minWidth: 92,
+    textAlign: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    fontWeight: '800',
+    overflow: 'hidden',
+  },
+  statusDefault: { color: '#1E3A8A', backgroundColor: '#E6ECF7' },
+  statusConfirmed: { color: '#166534', backgroundColor: '#DCFCE7' },
+  statusCancelled: { color: '#B91C1C', backgroundColor: '#FEE2E2' },
+  statusInProgress: { color: '#92400E', backgroundColor: '#FEF3C7' },
+  statusFinished: { color: '#334155', backgroundColor: '#E2E8F0' },
 });

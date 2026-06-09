@@ -3,6 +3,7 @@ import { View, Text, Pressable, StyleSheet, ActivityIndicator, ScrollView } from
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
 import { useAuth } from '../context/AuthContext';
+import { AppHeader } from '../components/AppHeader';
 import { fetchMyReservations, MobileReservation } from '../services/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
@@ -49,8 +50,10 @@ export function DashboardScreen({ navigation }: Props) {
   const todayReservations = upcoming.filter((reservation) => isToday(reservation.dateDebut));
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
+    <View style={styles.screen}>
+      <AppHeader subtitle={`Bonjour ${user ? `${user.prenom} ${user.nom}` : 'collaborateur'}`} />
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.header}>
         <View>
           <Text style={styles.title}>Planning</Text>
           <Text style={styles.subtitle}>{user ? `${user.prenom} ${user.nom}` : 'collaborateur'}</Text>
@@ -58,9 +61,9 @@ export function DashboardScreen({ navigation }: Props) {
         <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>Retour</Text>
         </Pressable>
-      </View>
+        </View>
 
-      <View style={styles.card}>
+        <View style={styles.card}>
         <Text style={styles.sectionTitle}>Aujourd’hui</Text>
         {loading ? (
           <ActivityIndicator color="#1E3A8A" />
@@ -77,9 +80,9 @@ export function DashboardScreen({ navigation }: Props) {
             </Pressable>
           ))
         )}
-      </View>
+        </View>
 
-      <View style={styles.card}>
+        <View style={styles.card}>
         <Text style={styles.sectionTitle}>À venir</Text>
         {loading ? (
           <ActivityIndicator color="#1E3A8A" />
@@ -96,19 +99,21 @@ export function DashboardScreen({ navigation }: Props) {
             </Pressable>
           ))
         )}
-      </View>
+        </View>
 
-      <View style={styles.card}>
+        <View style={styles.card}>
         <Text style={styles.sectionTitle}>Actions rapides</Text>
         <Pressable style={styles.button} onPress={() => navigation.navigate('Reservation')}>
           <Text style={styles.buttonText}>Créer une réservation</Text>
         </Pressable>
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: '#F5F7FB' },
   container: { padding: 20, backgroundColor: '#F5F7FB' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
   title: { fontSize: 24, fontWeight: '800', color: '#162033' },
