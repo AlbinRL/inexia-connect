@@ -2,9 +2,14 @@ import { SallesService } from './salles.service';
 export declare class SallesController {
     private readonly sallesService;
     constructor(sallesService: SallesService);
-    findAll(query: {
+    findAll(req: {
+        user: {
+            role: string;
+            siteId: number | null;
+        };
+    }, query: {
         siteId?: string;
-    }): import("@prisma/client").Prisma.PrismaPromise<({
+    }): never[] | import("@prisma/client").Prisma.PrismaPromise<({
         equipements: ({
             materiel: {
                 nom: string;
@@ -22,7 +27,12 @@ export declare class SallesController {
         capacite: number;
         siteId: number;
     })[]>;
-    create(body: {
+    create(req: {
+        user: {
+            role: string;
+            siteId: number | null;
+        };
+    }, body: {
         nom: string;
         capacite: number;
         siteId: number;
@@ -48,7 +58,12 @@ export declare class SallesController {
         capacite: number;
         siteId: number;
     }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
-    update(id: number, body: {
+    update(id: number, req: {
+        user: {
+            role: string;
+            siteId: number | null;
+        };
+    }, body: {
         nom?: string;
         capacite?: number;
         siteId?: number;
@@ -56,7 +71,7 @@ export declare class SallesController {
             materielId: number;
             quantite: number;
         }[];
-    }): import("@prisma/client").Prisma.Prisma__SalleClient<{
+    }): Promise<({
         equipements: ({
             materiel: {
                 nom: string;
@@ -73,14 +88,24 @@ export declare class SallesController {
         id: number;
         capacite: number;
         siteId: number;
-    }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
-    remove(id: number): Promise<{
+    }) | null>;
+    remove(id: number, req: {
+        user: {
+            role: string;
+            siteId: number | null;
+        };
+    }): Promise<{
         nom: string;
         id: number;
         capacite: number;
         siteId: number;
-    }>;
-    findBySite(siteId: number): import("@prisma/client").Prisma.PrismaPromise<({
+    } | null>;
+    findBySite(siteId: number, req: {
+        user: {
+            role: string;
+            siteId: number | null;
+        };
+    }): import("@prisma/client").Prisma.PrismaPromise<({
         equipements: ({
             materiel: {
                 nom: string;

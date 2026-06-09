@@ -18,24 +18,24 @@ export declare class ReservationsService {
     findByUserId(userId: number): Promise<({
         salle: {
             site: {
+                id: number;
                 nom: string;
                 ville: string;
-                id: number;
             };
             equipements: ({
                 materiel: {
-                    nom: string;
                     id: number;
+                    nom: string;
                 };
             } & {
                 id: number;
-                quantite: number;
-                materielId: number;
                 salleId: number;
+                materielId: number;
+                quantite: number;
             })[];
         } & {
-            nom: string;
             id: number;
+            nom: string;
             capacite: number;
             siteId: number;
         };
@@ -53,21 +53,21 @@ export declare class ReservationsService {
         siteId?: number;
         date?: string;
     }): Promise<({
-        utilisateur: {
-            nom: string;
-            id: number;
-            prenom: string;
-        };
         salle: {
             site: {
-                nom: string;
                 id: number;
+                nom: string;
             };
         } & {
-            nom: string;
             id: number;
+            nom: string;
             capacite: number;
             siteId: number;
+        };
+        utilisateur: {
+            id: number;
+            nom: string;
+            prenom: string;
         };
     } & {
         id: number;
@@ -80,32 +80,32 @@ export declare class ReservationsService {
         statut: string;
     })[]>;
     findByUser(userId: number): Promise<({
-        utilisateur: {
-            nom: string;
-            id: number;
-            prenom: string;
-        };
         salle: {
             site: {
-                nom: string;
                 id: number;
+                nom: string;
             };
             equipements: ({
                 materiel: {
-                    nom: string;
                     id: number;
+                    nom: string;
                 };
             } & {
                 id: number;
-                quantite: number;
-                materielId: number;
                 salleId: number;
+                materielId: number;
+                quantite: number;
             })[];
         } & {
-            nom: string;
             id: number;
+            nom: string;
             capacite: number;
             siteId: number;
+        };
+        utilisateur: {
+            id: number;
+            nom: string;
+            prenom: string;
         };
     } & {
         id: number;
@@ -136,6 +136,11 @@ export declare class ReservationsService {
         salleId: number;
     }>;
     findById(id: number): Promise<({
+        salle: {
+            id: number;
+            siteId: number;
+        };
+    } & {
         id: number;
         dateDebut: Date;
         dateFin: Date;

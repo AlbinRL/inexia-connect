@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet, ActivityIndicator, Modal } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
 import { useAuth } from '../context/AuthContext';
@@ -19,6 +19,11 @@ export function HomeScreen({ navigation }: Props) {
       .sort((a, b) => new Date(a.dateDebut).getTime() - new Date(b.dateDebut).getTime())
       .slice(0, 10);
   }, [reservations]);
+
+  const todayReservations = useMemo(() => {
+    const today = new Date().toDateString();
+    return upcoming.filter((reservation) => new Date(reservation.dateDebut).toDateString() === today);
+  }, [upcoming]);
 
   useEffect(() => {
     let mounted = true;
@@ -53,7 +58,7 @@ export function HomeScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.banner}>
         <Text style={styles.appTitle}>Inexia Connect</Text>
         <View style={styles.bannerRight}>
@@ -73,42 +78,68 @@ export function HomeScreen({ navigation }: Props) {
         </Pressable>
       </Modal>
       <Text style={styles.subtitle}>Bonjour {user ? `${user.prenom} ${user.nom}` : 'collaborateur'}</Text>
-      <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
+      <View style={styles.actionsRow}>
         <Pressable style={styles.button} onPress={() => navigation.navigate('Reservation')}>
           <Text style={styles.buttonText}>+ Nouvelle réservation</Text>
         </Pressable>
-        <Pressable style={styles.secondaryButton} onPress={() => navigation.navigate('Dashboard')}>
-          <Text style={styles.secondaryButtonText}>Planning</Text>
-        </Pressable>
         {user?.role === 'DIRECTEUR' ? (
-          <Pressable style={styles.secondaryButton} onPress={() => navigation.navigate('DirectorRooms')}>
-            <Text style={styles.secondaryButtonText}>Salles</Text>
+          <Pressable style={styles.secondaryButton} onPress={() => navigation.navigate('Direction')}>
+            <Text style={styles.secondaryButtonText}>Direction</Text>
           </Pressable>
         ) : null}
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Prochaines réservations</Text>
+        <Text style={styles.sectionTitle}>Aujourd’hui</Text>
         {loading ? (
           <ActivityIndicator color="#1E3A8A" />
-        ) : upcoming.length === 0 ? (
-          <Text style={styles.emptyText}>Aucune réservation à venir.</Text>
+        ) : todayReservations.length === 0 ? (
+          <Text style={styles.emptyText}>Aucune réservation aujourd’hui.</Text>
         ) : (
-          upcoming.map((r) => (
-            <Pressable key={r.id} style={styles.reservationItem} onPress={() => navigation.navigate('Reservation', { reservationId: r.id })}>
-              <Text style={styles.reservationTitle}>{r.salle.nom}</Text>
-              <Text style={styles.reservationMeta}>{new Date(r.dateDebut).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Paris' })} → {new Date(r.dateFin).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Paris' })}</Text>
-              <Text style={styles.reservationStatus}>{r.status}</Text>
+          todayReservations.map((reservation) => (
+            <Pressable key={reservation.id} style={styles.reservationItem} onPress={() => navigation.navigate('Reservation', { reservationId: reservation.id })}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.reservationTitle}>{reservation.salle.nom}</Text>
+                <Text style={styles.reservationMeta}>{formatDateShort(reservation.dateDebut)} → {formatDateShort(reservation.dateFin)}</Text>
+              </View>
+              <Text style={styles.reservationStatus}>{reservation.status}</Text>
             </Pressable>
           ))
         )}
       </View>
-    </View>
+
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>À venir</Text>
+        {loading ? (
+          <ActivityIndicator color="#1E3A8A" />
+        ) : upcoming.length === 0 ? (
+          <Text style={styles.emptyText}>Aucune réservation planifiée.</Text>
+        ) : (
+          upcoming.slice(0, 5).map((reservation) => (
+            <Pressable key={reservation.id} style={styles.reservationItem} onPress={() => navigation.navigate('Reservation', { reservationId: reservation.id })}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.reservationTitle}>{reservation.salle.nom}</Text>
+                <Text style={styles.reservationMeta}>{formatDateShort(reservation.dateDebut)}</Text>
+              </View>
+              <Text style={styles.reservationStatus}>{reservation.status}</Text>
+            </Pressable>
+          ))
+        )}
+      </View>
+    </ScrollView>
   );
 }
 
+function formatDateShort(value: string) {
+  return new Date(value).toLocaleString('fr-FR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+    timeZone: 'Europe/Paris',
+  });
+}
+
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, backgroundColor: '#F5F7FB' },
+  container: { padding: 24, backgroundColor: '#F5F7FB' },
   title: { fontSize: 28, fontWeight: '800', color: '#162033', marginBottom: 8 },
   subtitle: { fontSize: 16, fontWeight: '600', color: '#1E3A8A', marginBottom: 8 },
   text: { fontSize: 16, color: '#52627D', marginBottom: 24 },
@@ -152,4 +183,5 @@ const styles = StyleSheet.create({
   menuText: { color: '#162033', fontWeight: '700', marginBottom: 8 },
   menuItem: { paddingVertical: 10, paddingHorizontal: 8, width: '100%' },
   menuItemText: { color: '#E53935', fontWeight: '700' },
+  actionsRow: { flexDirection: 'row', gap: 12, marginBottom: 12, flexWrap: 'wrap' },
 });

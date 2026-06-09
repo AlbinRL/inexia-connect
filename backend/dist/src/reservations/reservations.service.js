@@ -301,7 +301,17 @@ let ReservationsService = class ReservationsService {
     }
     async findById(id) {
         await this.cleanupExpiredCancelledReservations();
-        const reservation = await this.prisma.reservation.findUnique({ where: { id } });
+        const reservation = await this.prisma.reservation.findUnique({
+            where: { id },
+            include: {
+                salle: {
+                    select: {
+                        id: true,
+                        siteId: true,
+                    },
+                },
+            },
+        });
         return reservation ? this.withStatus(reservation) : null;
     }
 };

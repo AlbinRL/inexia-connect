@@ -7,11 +7,10 @@ import {
   createRoom,
   deleteRoom,
   fetchMateriel,
-  fetchRooms,
-  fetchSites,
+  fetchSite,
   MobileMateriel,
   MobileRoom,
-  MobileSite,
+  MobileSiteDetail,
   updateRoom,
 } from '../services/api';
 
@@ -34,12 +33,10 @@ const emptyEquipmentRow = (): EquipmentFormRow => ({ materielId: null, quantite:
 
 export function DirectorRoomsScreen({ navigation }: Props) {
   const { user } = useAuth();
-  const [sites, setSites] = useState<MobileSite[]>([]);
+  const [site, setSite] = useState<MobileSiteDetail | null>(null);
   const [materials, setMaterials] = useState<MobileMateriel[]>([]);
-  const [rooms, setRooms] = useState<MobileRoom[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [selectedSiteId, setSelectedSiteId] = useState<number | null>(user?.siteId ?? null);
   const [materialPickerRow, setMaterialPickerRow] = useState<number | null>(null);
   const [form, setForm] = useState<RoomFormState>({
     id: null,
@@ -49,38 +46,47 @@ export function DirectorRoomsScreen({ navigation }: Props) {
     equipements: [emptyEquipmentRow()],
   });
 
-  const selectedSite = useMemo(
-    () => sites.find((site) => site.id === selectedSiteId) ?? null,
-    [sites, selectedSiteId],
+  const isDirector = user?.role === 'DIRECTEUR';
+  const siteId = user?.siteId ?? null;
+  const rooms = site?.salles ?? [];
+  const filteredMaterials = useMemo(
+    () => materials.filter((material) => material.siteId === siteId || material.siteId === undefined || material.siteId === null),
+    [materials, siteId],
   );
 
-  const isDirector = user?.role === 'DIRECTEUR';
+  const selectedMaterialName = (materialId: number | null) => {
+    if (materialId === null) return null;
+    return filteredMaterials.find((material) => material.id === materialId)?.nom ?? null;
+  };
 
-  const loadRooms = async (siteId: number | null) => {
-    const data = await fetchRooms(siteId);
-    setRooms(data);
+  const refresh = async () => {
+    if (!siteId) return;
+
+    const [siteData, materialData] = await Promise.all([fetchSite(siteId), fetchMateriel()]);
+    setSite(siteData);
+    setMaterials(materialData);
+    setForm((current) => ({
+      ...current,
+      siteId,
+      equipements: current.equipements.length > 0 ? current.equipements : [emptyEquipmentRow()],
+    }));
   };
 
   useEffect(() => {
-    if (!isDirector) return;
+    if (!isDirector || !siteId) {
+      setLoading(false);
+      return;
+    }
 
     let mounted = true;
     const load = async () => {
       try {
         setLoading(true);
-        const [siteData, materialData] = await Promise.all([fetchSites(), fetchMateriel()]);
-        if (!mounted) return;
-        setSites(siteData);
-        setMaterials(materialData);
-        const nextSiteId = selectedSiteId ?? user?.siteId ?? siteData[0]?.id ?? null;
-        setSelectedSiteId(nextSiteId);
-        setForm((current) => ({ ...current, siteId: current.siteId ?? nextSiteId }));
-        await loadRooms(nextSiteId);
+        await refresh();
       } catch {
         if (mounted) {
-          setSites([]);
+          setSite(null);
           setMaterials([]);
-          setRooms([]);
         }
       } finally {
         if (mounted) setLoading(false);
@@ -91,41 +97,14 @@ export function DirectorRoomsScreen({ navigation }: Props) {
     return () => {
       mounted = false;
     };
-  }, [isDirector]);
-
-  useEffect(() => {
-    if (!isDirector || selectedSiteId === null) return;
-
-    let mounted = true;
-    const refresh = async () => {
-      try {
-        setLoading(true);
-        const data = await fetchRooms(selectedSiteId);
-        if (mounted) setRooms(data);
-      } catch {
-        if (mounted) setRooms([]);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    refresh();
-    return () => {
-      mounted = false;
-    };
-  }, [isDirector, selectedSiteId]);
-
-  const selectedMaterialName = (materialId: number | null) => {
-    if (materialId === null) return null;
-    return materials.find((material) => material.id === materialId)?.nom ?? null;
-  };
+  }, [isDirector, siteId]);
 
   const resetForm = () => {
     setForm({
       id: null,
       nom: '',
       capacite: '8',
-      siteId: selectedSiteId ?? user?.siteId ?? null,
+      siteId,
       equipements: [emptyEquipmentRow()],
     });
   };
@@ -138,12 +117,14 @@ export function DirectorRoomsScreen({ navigation }: Props) {
       siteId: room.siteId,
       equipements: room.equipements?.length
         ? room.equipements.map((equipment) => ({
-            materielId: materials.find((material) => material.nom === (equipment.materiel?.nom ?? equipment.materiel?.libelle ?? ''))?.id ?? null,
+            materielId:
+              filteredMaterials.find(
+                (material) => material.nom === (equipment.materiel?.nom ?? equipment.materiel?.libelle ?? ''),
+              )?.id ?? null,
             quantite: String(equipment.quantite),
           }))
         : [emptyEquipmentRow()],
     });
-    setSelectedSiteId(room.siteId);
   };
 
   const updateEquipmentRow = (index: number, patch: Partial<EquipmentFormRow>) => {
@@ -167,10 +148,9 @@ export function DirectorRoomsScreen({ navigation }: Props) {
   const saveRoom = async () => {
     const nom = form.nom.trim();
     const capacite = Number(form.capacite);
-    const siteId = form.siteId;
 
     if (!nom || !Number.isFinite(capacite) || capacite <= 0 || !siteId) {
-      Alert.alert('Champs manquants', 'Nom, capacité et site sont obligatoires.');
+      Alert.alert('Champs manquants', 'Nom et capacité sont obligatoires.');
       return;
     }
 
@@ -185,7 +165,7 @@ export function DirectorRoomsScreen({ navigation }: Props) {
       } else {
         await createRoom({ nom, capacite, siteId, equipements });
       }
-      await loadRooms(siteId);
+      await refresh();
       resetForm();
     } catch {
       Alert.alert('Erreur', 'Impossible de sauvegarder la salle.');
@@ -203,7 +183,7 @@ export function DirectorRoomsScreen({ navigation }: Props) {
         onPress: async () => {
           try {
             await deleteRoom(roomId);
-            await loadRooms(selectedSiteId);
+            await refresh();
             if (form.id === roomId) {
               resetForm();
             }
@@ -219,7 +199,19 @@ export function DirectorRoomsScreen({ navigation }: Props) {
     return (
       <View style={styles.centered}>
         <Text style={styles.title}>Accès réservé au directeur</Text>
-        <Text style={styles.text}>Cette section mobile ne gère pas l’administration complète.</Text>
+        <Text style={styles.text}>Cette section mobile est limitée au site rattaché au compte.</Text>
+        <Pressable style={styles.primaryButton} onPress={() => navigation.goBack()}>
+          <Text style={styles.primaryButtonText}>Retour</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  if (!siteId) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.title}>Aucun site rattaché</Text>
+        <Text style={styles.text}>Le directeur doit être lié à un site pour voir ses salles.</Text>
         <Pressable style={styles.primaryButton} onPress={() => navigation.goBack()}>
           <Text style={styles.primaryButtonText}>Retour</Text>
         </Pressable>
@@ -232,7 +224,7 @@ export function DirectorRoomsScreen({ navigation }: Props) {
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Gestion des salles</Text>
-          <Text style={styles.text}>{selectedSite ? `${selectedSite.nom}${selectedSite.ville ? ` • ${selectedSite.ville}` : ''}` : 'Choisissez un site'}</Text>
+          <Text style={styles.text}>{site ? `${site.nom}${site.ville ? ` • ${site.ville}` : ''}` : 'Chargement du site...'}</Text>
         </View>
         <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>Retour</Text>
@@ -240,34 +232,8 @@ export function DirectorRoomsScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Site</Text>
-        <View style={styles.chipsRow}>
-          {sites.map((site) => {
-            const active = selectedSiteId === site.id;
-            return (
-              <Pressable key={site.id} style={[styles.chip, active && styles.chipActive]} onPress={() => setSelectedSiteId(site.id)}>
-                <Text style={[styles.chipText, active && styles.chipTextActive]}>{site.nom}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-
-      <View style={styles.card}>
-        <View style={styles.formHeader}>
-          <Text style={styles.sectionTitle}>{form.id ? 'Modifier une salle' : 'Créer une salle'}</Text>
-          {form.id ? (
-            <Pressable onPress={resetForm}>
-              <Text style={styles.link}>Annuler l’édition</Text>
-            </Pressable>
-          ) : null}
-        </View>
-        <TextInput
-          value={form.nom}
-          onChangeText={(value) => setForm((current) => ({ ...current, nom: value }))}
-          placeholder="Nom"
-          style={styles.input}
-        />
+        <Text style={styles.sectionTitle}>Créer une salle</Text>
+        <TextInput value={form.nom} onChangeText={(value) => setForm((current) => ({ ...current, nom: value }))} placeholder="Nom" style={styles.input} />
         <TextInput
           value={form.capacite}
           onChangeText={(value) => setForm((current) => ({ ...current, capacite: value.replace(/[^0-9]/g, '') }))}
@@ -275,7 +241,7 @@ export function DirectorRoomsScreen({ navigation }: Props) {
           keyboardType="numeric"
           style={styles.input}
         />
-        <Text style={styles.subSectionTitle}>Équipements</Text>
+        <Text style={styles.subSectionTitle}>Équipements du site</Text>
         {form.equipements.map((row, index) => (
           <View key={`${index}-${row.materielId ?? 'empty'}`} style={styles.equipmentRow}>
             <Pressable style={styles.materialPicker} onPress={() => setMaterialPickerRow(index)}>
@@ -306,7 +272,7 @@ export function DirectorRoomsScreen({ navigation }: Props) {
         {loading ? (
           <Text style={styles.text}>Chargement...</Text>
         ) : rooms.length === 0 ? (
-          <Text style={styles.text}>Aucune salle trouvée.</Text>
+          <Text style={styles.text}>Aucune salle trouvée sur ce site.</Text>
         ) : (
           rooms.map((room) => (
             <Pressable key={room.id} style={[styles.roomItem, form.id === room.id && styles.roomItemActive]} onPress={() => editRoom(room)}>
@@ -341,7 +307,7 @@ export function DirectorRoomsScreen({ navigation }: Props) {
           <View style={styles.modalCard}>
             <Text style={styles.sectionTitle}>Choisir un matériel</Text>
             <ScrollView style={{ maxHeight: 320 }}>
-              {materials.map((material) => (
+              {filteredMaterials.map((material) => (
                 <Pressable
                   key={material.id}
                   style={styles.modalItem}
@@ -374,19 +340,12 @@ const styles = StyleSheet.create({
   card: { backgroundColor: '#fff', borderRadius: 20, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#E2E8F3' },
   sectionTitle: { fontSize: 18, fontWeight: '800', color: '#162033', marginBottom: 12 },
   subSectionTitle: { fontSize: 14, fontWeight: '800', color: '#162033', marginTop: 4, marginBottom: 8 },
-  formHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  link: { color: '#1E3A8A', fontWeight: '700' },
   input: { backgroundColor: '#F8FAFD', borderWidth: 1, borderColor: '#D8E0EE', borderRadius: 14, padding: 12, marginBottom: 12 },
   quantityInput: { width: 72, marginBottom: 0 },
   primaryButton: { backgroundColor: '#1E3A8A', borderRadius: 14, alignItems: 'center', padding: 14, marginTop: 8 },
   primaryButtonText: { color: '#fff', fontWeight: '700' },
   secondaryButton: { backgroundColor: '#E6ECF7', borderRadius: 14, alignItems: 'center', padding: 14, marginBottom: 12 },
   secondaryButtonText: { color: '#1E3A8A', fontWeight: '700' },
-  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingVertical: 10, paddingHorizontal: 12, borderRadius: 999, borderWidth: 1, borderColor: '#D8E0EE', backgroundColor: '#fff' },
-  chipActive: { backgroundColor: '#1E3A8A', borderColor: '#1E3A8A' },
-  chipText: { color: '#162033', fontWeight: '700' },
-  chipTextActive: { color: '#fff' },
   equipmentRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
   materialPicker: { flex: 1, borderWidth: 1, borderColor: '#D8E0EE', borderRadius: 14, paddingVertical: 12, paddingHorizontal: 12, backgroundColor: '#F8FAFD' },
   materialPickerText: { color: '#162033', fontWeight: '600' },

@@ -44,6 +44,12 @@ export type MobileReservation = {
   dateDebut: string;
   dateFin: string;
   status: string;
+  statut?: string;
+  utilisateur?: {
+    id: number;
+    nom: string;
+    prenom: string;
+  };
   salle: {
     id: number;
     nom: string;
@@ -65,6 +71,10 @@ export type MobileSite = {
   ville?: string | null;
 };
 
+export type MobileSiteDetail = MobileSite & {
+  salles?: MobileRoom[];
+};
+
 export type MobileMateriel = {
   id: number;
   nom: string;
@@ -84,6 +94,13 @@ export async function fetchMyReservations() {
   return response.data;
 }
 
+export async function fetchSiteReservations(siteId: number) {
+  const response = await api.get<MobileReservation[]>('/reservations', {
+    params: { siteId },
+  });
+  return response.data;
+}
+
 export async function fetchRooms(siteId?: number | null) {
   const response = await api.get<MobileRoom[]>('/salles', {
     params: siteId ? { siteId } : undefined,
@@ -93,6 +110,11 @@ export async function fetchRooms(siteId?: number | null) {
 
 export async function fetchSites() {
   const response = await api.get<MobileSite[]>('/sites');
+  return response.data;
+}
+
+export async function fetchSite(siteId: number) {
+  const response = await api.get<MobileSiteDetail>(`/sites/${siteId}`);
   return response.data;
 }
 

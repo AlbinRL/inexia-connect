@@ -38,6 +38,24 @@ export declare class SallesService {
         capacite: number;
         siteId: number;
     })[]>;
+    findOne(id: number): import("@prisma/client").Prisma.Prisma__SalleClient<({
+        equipements: ({
+            materiel: {
+                nom: string;
+                id: number;
+            };
+        } & {
+            id: number;
+            quantite: number;
+            materielId: number;
+            salleId: number;
+        })[];
+    } & {
+        nom: string;
+        id: number;
+        capacite: number;
+        siteId: number;
+    }) | null, null, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
     create(data: {
         nom: string;
         capacite: number;

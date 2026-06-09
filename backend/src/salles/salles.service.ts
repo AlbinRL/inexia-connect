@@ -27,6 +27,17 @@ export class SallesService {
     });
   }
 
+  findOne(id: number) {
+    return this.prisma.salle.findUnique({
+      where: { id },
+      include: {
+        equipements: {
+          include: { materiel: true },
+        },
+      },
+    });
+  }
+
   create(data: {
     nom: string;
     capacite: number;

@@ -4,6 +4,7 @@ type AuthenticatedRequest = ExpressRequest & {
     user: {
         sub: number;
         role?: string;
+        siteId?: number | null;
     };
 };
 export declare class ReservationsController {
@@ -11,31 +12,31 @@ export declare class ReservationsController {
     constructor(reservationsService: ReservationsService);
     findMyReservations(req: AuthenticatedRequest): Promise<({
         utilisateur: {
-            nom: string;
             id: number;
+            nom: string;
             prenom: string;
         };
         salle: {
             site: {
-                nom: string;
                 id: number;
+                nom: string;
             };
             equipements: ({
                 materiel: {
-                    nom: string;
                     id: number;
+                    nom: string;
                 };
             } & {
                 id: number;
-                quantite: number;
-                materielId: number;
                 salleId: number;
+                materielId: number;
+                quantite: number;
             })[];
         } & {
-            nom: string;
             id: number;
-            capacite: number;
+            nom: string;
             siteId: number;
+            capacite: number;
         };
     } & {
         id: number;
@@ -49,31 +50,31 @@ export declare class ReservationsController {
     })[]>;
     findUserReservations(req: AuthenticatedRequest, userId: number): Promise<({
         utilisateur: {
-            nom: string;
             id: number;
+            nom: string;
             prenom: string;
         };
         salle: {
             site: {
-                nom: string;
                 id: number;
+                nom: string;
             };
             equipements: ({
                 materiel: {
-                    nom: string;
                     id: number;
+                    nom: string;
                 };
             } & {
                 id: number;
-                quantite: number;
-                materielId: number;
                 salleId: number;
+                materielId: number;
+                quantite: number;
             })[];
         } & {
-            nom: string;
             id: number;
-            capacite: number;
+            nom: string;
             siteId: number;
+            capacite: number;
         };
     } & {
         id: number;
@@ -85,25 +86,25 @@ export declare class ReservationsController {
     } & {
         statut: string;
     })[]>;
-    findAll(query: {
+    findAll(req: AuthenticatedRequest, query: {
         siteId?: string;
         date?: string;
     }): Promise<({
         utilisateur: {
-            nom: string;
             id: number;
+            nom: string;
             prenom: string;
         };
         salle: {
             site: {
-                nom: string;
                 id: number;
+                nom: string;
             };
         } & {
-            nom: string;
             id: number;
-            capacite: number;
+            nom: string;
             siteId: number;
+            capacite: number;
         };
     } & {
         id: number;
@@ -135,26 +136,26 @@ export declare class ReservationsController {
     findByUser(req: AuthenticatedRequest, userId: number): Promise<({
         salle: {
             site: {
+                id: number;
                 nom: string;
                 ville: string;
-                id: number;
             };
             equipements: ({
                 materiel: {
-                    nom: string;
                     id: number;
+                    nom: string;
                 };
             } & {
                 id: number;
-                quantite: number;
-                materielId: number;
                 salleId: number;
+                materielId: number;
+                quantite: number;
             })[];
         } & {
-            nom: string;
             id: number;
-            capacite: number;
+            nom: string;
             siteId: number;
+            capacite: number;
         };
     } & {
         id: number;

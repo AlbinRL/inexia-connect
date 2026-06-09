@@ -23,6 +23,7 @@ type AuthenticatedRequest = ExpressRequest & {
   user: {
     sub: number;
     role?: string;
+    siteId?: number | null;
   };
 };
 
@@ -50,8 +51,9 @@ export class ReservationsController {
 
   @Roles('ADMIN', 'DIRECTEUR')
   @Get()
-  async findAll(@Query() query: { siteId?: string; date?: string }) {
-    return this.reservationsService.findAll({ siteId: query.siteId ? Number(query.siteId) : undefined, date: query.date });
+  async findAll(@Request() req: AuthenticatedRequest, @Query() query: { siteId?: string; date?: string }) {
+    const siteId = req.user.role === 'DIRECTEUR' ? req.user.siteId ?? undefined : query.siteId ? Number(query.siteId) : undefined;
+    return this.reservationsService.findAll({ siteId, date: query.date });
   }
 
   @Get('availability')
@@ -68,6 +70,10 @@ export class ReservationsController {
     const reservation = await this.reservationsService.findById(id);
     if (!reservation) {
       throw new NotFoundException('Réservation introuvable');
+    }
+
+    if (req.user.role === 'DIRECTEUR' && req.user.siteId !== reservation.salle?.siteId) {
+      throw new ForbiddenException('Accès refusé');
     }
 
     // Allow deletion if user is the owner, or has ADMIN or DIRECTEUR role

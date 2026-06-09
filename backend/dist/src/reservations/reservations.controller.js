@@ -32,8 +32,9 @@ let ReservationsController = class ReservationsController {
         }
         return this.reservationsService.findByUser(userId);
     }
-    async findAll(query) {
-        return this.reservationsService.findAll({ siteId: query.siteId ? Number(query.siteId) : undefined, date: query.date });
+    async findAll(req, query) {
+        const siteId = req.user.role === 'DIRECTEUR' ? req.user.siteId ?? undefined : query.siteId ? Number(query.siteId) : undefined;
+        return this.reservationsService.findAll({ siteId, date: query.date });
     }
     async getAvailability(query) {
         if (!query.dateDebut || !query.dateFin) {
@@ -45,6 +46,9 @@ let ReservationsController = class ReservationsController {
         const reservation = await this.reservationsService.findById(id);
         if (!reservation) {
             throw new common_1.NotFoundException('Réservation introuvable');
+        }
+        if (req.user.role === 'DIRECTEUR' && req.user.siteId !== reservation.salle?.siteId) {
+            throw new common_1.ForbiddenException('Accès refusé');
         }
         if (req.user.sub !== reservation.utilisateurId && req.user.role !== 'ADMIN' && req.user.role !== 'DIRECTEUR') {
             throw new common_1.ForbiddenException('Accès refusé');
@@ -81,9 +85,10 @@ __decorate([
 __decorate([
     (0, roles_decorator_1.Roles)('ADMIN', 'DIRECTEUR'),
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)()),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], ReservationsController.prototype, "findAll", null);
 __decorate([

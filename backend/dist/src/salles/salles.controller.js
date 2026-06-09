@@ -15,67 +15,101 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SallesController = void 0;
 const common_1 = require("@nestjs/common");
 const salles_service_1 = require("./salles.service");
+const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const roles_guard_1 = require("../auth/roles.guard");
 let SallesController = class SallesController {
     sallesService;
     constructor(sallesService) {
         this.sallesService = sallesService;
     }
-    findAll(query) {
+    findAll(req, query) {
+        if (req.user.role === 'DIRECTEUR') {
+            return req.user.siteId ? this.sallesService.findBySite(req.user.siteId) : [];
+        }
         if (query.siteId)
             return this.sallesService.findBySite(Number(query.siteId));
         return this.sallesService.findAll();
     }
-    create(body) {
+    create(req, body) {
+        if (req.user.role === 'DIRECTEUR' && req.user.siteId !== body.siteId) {
+            throw new common_1.ForbiddenException('Accès limité au site rattaché');
+        }
         return this.sallesService.create(body);
     }
-    update(id, body) {
+    async update(id, req, body) {
+        const salle = await this.sallesService.findOne(id);
+        if (!salle) {
+            return salle;
+        }
+        if (req.user.role === 'DIRECTEUR' && salle.siteId !== req.user.siteId) {
+            throw new common_1.ForbiddenException('Accès limité au site rattaché');
+        }
+        if (req.user.role === 'DIRECTEUR' && body.siteId !== undefined && body.siteId !== req.user.siteId) {
+            throw new common_1.ForbiddenException('Accès limité au site rattaché');
+        }
         return this.sallesService.update(id, body);
     }
-    remove(id) {
+    async remove(id, req) {
+        const salle = await this.sallesService.findOne(id);
+        if (!salle) {
+            return salle;
+        }
+        if (req.user.role === 'DIRECTEUR' && salle.siteId !== req.user.siteId) {
+            throw new common_1.ForbiddenException('Accès limité au site rattaché');
+        }
         return this.sallesService.remove(id);
     }
-    findBySite(siteId) {
+    findBySite(siteId, req) {
+        if (req.user.role === 'DIRECTEUR' && req.user.siteId !== siteId) {
+            throw new common_1.ForbiddenException('Accès limité au site rattaché');
+        }
         return this.sallesService.findBySite(siteId);
     }
 };
 exports.SallesController = SallesController;
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)()),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], SallesController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Post)(),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], SallesController.prototype, "create", null);
 __decorate([
     (0, common_1.Put)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
-    __param(1, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Number, Object, Object]),
+    __metadata("design:returntype", Promise)
 ], SallesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
 ], SallesController.prototype, "remove", null);
 __decorate([
     (0, common_1.Get)('site/:siteId'),
     __param(0, (0, common_1.Param)('siteId', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", void 0)
 ], SallesController.prototype, "findBySite", null);
 exports.SallesController = SallesController = __decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.Controller)('salles'),
     __metadata("design:paramtypes", [salles_service_1.SallesService])
 ], SallesController);

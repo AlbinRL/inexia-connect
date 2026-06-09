@@ -36,6 +36,16 @@ let SallesService = class SallesService {
             },
         });
     }
+    findOne(id) {
+        return this.prisma.salle.findUnique({
+            where: { id },
+            include: {
+                equipements: {
+                    include: { materiel: true },
+                },
+            },
+        });
+    }
     create(data) {
         return this.prisma.salle.create({
             data: {
