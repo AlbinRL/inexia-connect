@@ -12,6 +12,7 @@ export function AppHeader({ subtitle, hideMenu = false }: AppHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
+    // Ferme d'abord le menu pour éviter un état visuel bloqué pendant le logout asynchrone.
     setMenuOpen(false);
     await signOut();
   };
@@ -35,6 +36,7 @@ export function AppHeader({ subtitle, hideMenu = false }: AppHeaderProps) {
 
       {!hideMenu ? (
         <Modal visible={menuOpen} transparent animationType="fade" onRequestClose={() => setMenuOpen(false)}>
+          {/* Overlay cliquable: fermeture du menu en cliquant en dehors du panneau. */}
           <Pressable style={styles.menuOverlay} onPress={() => setMenuOpen(false)}>
             <Pressable style={styles.menuDropdown} onPress={(event) => event.stopPropagation()}>
               <Text style={styles.menuText}>{user ? `${user.prenom} ${user.nom}` : 'Utilisateur'}</Text>

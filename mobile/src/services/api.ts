@@ -7,6 +7,7 @@ export const api = axios.create({
   timeout: 15000,
 });
 
+// Injecte automatiquement le JWT sur chaque requête pour éviter de répéter les headers partout.
 api.interceptors.request.use(async (config) => {
   const token = await getToken();
   if (token) {
@@ -155,7 +156,7 @@ export async function fetchReservation(reservationId: number) {
     const response = await api.get<MobileReservation>(`/reservations/${reservationId}`);
     return response.data;
   } catch (err: any) {
-    // If backend doesn't expose GET /reservations/:id, fallback to fetching /reservations/me and find it locally
+    // Fallback de compatibilité: si l'endpoint détail n'existe pas, on cherche dans les réservations utilisateur.
     if (err?.response?.status === 404) {
       const all = await fetchMyReservations();
       const found = all.find((r) => r.id === reservationId);

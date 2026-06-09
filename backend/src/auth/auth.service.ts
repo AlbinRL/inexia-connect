@@ -21,7 +21,7 @@ export class AuthService {
     prenom: string;
     siteId?: number;
   }) {
-    // 1. Vérifier si l'utilisateur existe déjà
+    // 1) Vérifier l'unicité email avant toute opération coûteuse.
     const existingUser = await this.prisma.utilisateur.findUnique({
       where: { email: data.email },
     });
@@ -30,11 +30,11 @@ export class AuthService {
       throw new ConflictException('Cet email est déjà utilisé');
     }
 
-    // 2. Hasher le mot de passe
+    // 2) Ne jamais stocker de mot de passe en clair: hash bcrypt + salt rounds.
     const saltOrRounds = 10;
     const hashedPassword = await bcrypt.hash(data.motDePasse, saltOrRounds);
 
-    // 3. Créer l'utilisateur avec le rôle par défaut 'COLLABORATEUR'
+    // 3) Rôle par défaut: COLLABORATEUR (évite d'exposer un rôle admin en inscription publique).
     const utilisateur = await this.prisma.utilisateur.create({
       data: {
         email: data.email,
@@ -46,7 +46,7 @@ export class AuthService {
       },
     });
 
-    // 4. Préparer le payload du JWT
+    // 4) Payload JWT minimal: identité + autorisations utiles au contrôle d'accès.
     const payload = {
       sub: utilisateur.id,
       email: utilisateur.email,
@@ -54,7 +54,7 @@ export class AuthService {
       siteId: utilisateur.siteId ?? null,
     };
 
-    // 5. Renvoyer le token et les infos
+    // 5) Retour API: token + profil sans mot de passe.
     return {
       access_token: this.jwtService.sign(payload),
       utilisateur: {
@@ -68,12 +68,12 @@ export class AuthService {
   }
 
   async login(email: string, motDePasse: string) {
-    // 1. On cherche l'utilisateur par son email
+    // 1) Chargement de l'utilisateur depuis l'email.
     const utilisateur = await this.prisma.utilisateur.findUnique({
       where: { email },
     });
 
-    // 2. On vérifie s'il existe ET si le mot de passe correspond au hash
+    // 2) Vérification existence + comparaison du mot de passe avec le hash stocké.
     if (
       !utilisateur ||
       !(await bcrypt.compare(motDePasse, utilisateur.motDePasse))
@@ -81,7 +81,7 @@ export class AuthService {
       throw new UnauthorizedException('Email ou mot de passe incorrect');
     }
 
-    // 3. On prépare le contenu du ticket d'accès (Token JWT)
+    // 3) Le JWT embarque les claims nécessaires aux guards (sub, role, siteId).
     const payload = {
       sub: utilisateur.id,
       email: utilisateur.email,
@@ -89,7 +89,7 @@ export class AuthService {
       siteId: utilisateur.siteId ?? null,
     };
 
-    // 4. On renvoie le token et les infos utiles (sans le mot de passe !)
+    // 4) Réponse normalisée consommée par web/mobile.
     return {
       access_token: this.jwtService.sign(payload),
       utilisateur: {

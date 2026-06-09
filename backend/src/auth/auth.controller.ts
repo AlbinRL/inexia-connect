@@ -5,6 +5,7 @@ import { AuthService } from './auth.service';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  // Inscription publique: crée un collaborateur et retourne directement un JWT prêt à l'emploi.
   @Post('register')
   async register(
     @Body()
@@ -18,6 +19,7 @@ export class AuthController {
     return this.authService.register(body);
   }
 
+  // Connexion: vérifie les identifiants et renvoie token + profil minimal.
   @Post('login')
   async login(@Body() body: { email: string; motDePasse: string }) {
     return this.authService.login(body.email, body.motDePasse);

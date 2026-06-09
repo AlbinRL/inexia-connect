@@ -7,14 +7,12 @@ import {
   Param,
   Delete,
   UseGuards,
-  Query,
   ParseIntPipe,
 } from '@nestjs/common';
 import { MaterielService } from './materiel.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { Role } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('materiel')
@@ -27,15 +25,15 @@ export class MaterielController {
     @Body()
     body: {
       nom: string;
-      quantiteTotale: number;
-      siteId: number;
     },
   ) {
+    // Référentiel global: création d'un type de matériel (pas d'affectation site ici).
     return this.materielService.create(body);
   }
 
   @Get()
   async findAll() {
+    // Utilisé par les formulaires salle pour proposer la liste des matériels disponibles.
     return this.materielService.findAll();
   }
 
@@ -51,8 +49,6 @@ export class MaterielController {
     @Body()
     body: {
       nom?: string;
-      quantiteTotale?: number;
-      siteId?: number;
     },
   ) {
     return this.materielService.update(id, body);

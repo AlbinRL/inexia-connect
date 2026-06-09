@@ -32,11 +32,13 @@ type AuthenticatedRequest = ExpressRequest & {
 export class ReservationsController {
   constructor(private readonly reservationsService: ReservationsService) {}
 
+  // Réservations de l'utilisateur connecté (lecture "self-service").
   @Get('me')
   async findMyReservations(@Request() req: AuthenticatedRequest) {
     return this.reservationsService.findByUser(req.user.sub);
   }
 
+  // Réservations d'un utilisateur précis: accessible au propriétaire, ADMIN ou DIRECTEUR.
   @Get('user/:userId')
   async findUserReservations(
     @Request() req: AuthenticatedRequest,
@@ -52,6 +54,7 @@ export class ReservationsController {
   @Roles('ADMIN', 'DIRECTEUR')
   @Get()
   async findAll(@Request() req: AuthenticatedRequest, @Query() query: { siteId?: string; date?: string }) {
+    // Un directeur est automatiquement restreint à son site, même s'il passe un autre siteId en query.
     const siteId = req.user.role === 'DIRECTEUR' ? req.user.siteId ?? undefined : query.siteId ? Number(query.siteId) : undefined;
     return this.reservationsService.findAll({ siteId, date: query.date });
   }
@@ -62,6 +65,7 @@ export class ReservationsController {
       throw new BadRequestException('Les dates de réservation sont requises');
     }
 
+    // Endpoint de prévisualisation: calcule la disponibilité sans créer de réservation.
     return this.reservationsService.getAvailabilityForSlot(query.dateDebut, query.dateFin);
   }
 
@@ -76,7 +80,7 @@ export class ReservationsController {
       throw new ForbiddenException('Accès refusé');
     }
 
-    // Allow deletion if user is the owner, or has ADMIN or DIRECTEUR role
+    // Règle d'accès: propriétaire, ADMIN, ou DIRECTEUR autorisé sur le même site.
     if (req.user.sub !== reservation.utilisateurId && req.user.role !== 'ADMIN' && req.user.role !== 'DIRECTEUR') {
       throw new ForbiddenException('Accès refusé');
     }
@@ -100,8 +104,7 @@ export class ReservationsController {
     @Request() req: AuthenticatedRequest,
     @Body() dto: { dateDebut: string; dateFin: string; salleId: number },
   ) {
-    // Le JwtAuthGuard décode le token et place le payload dans req.user
-    // On récupère "sub" qui correspond à l'ID de l'utilisateur (défini dans auth.service.ts)
+    // Le JWT fournit l'identité (sub) pour éviter qu'un client impose un utilisateur arbitraire.
     const userId = req.user.sub;
 
     return this.reservationsService.create(userId, dto);

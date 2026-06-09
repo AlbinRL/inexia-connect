@@ -6,14 +6,14 @@ import { Materiel } from '@prisma/client';
 export class MaterielService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Création simplifiée : on ne crée qu'un nom (le référentiel)
+  // Référentiel central: un matériel est défini une seule fois par son nom.
   async create(data: { nom: string }): Promise<Materiel> {
     return this.prisma.materiel.create({
       data,
     });
   }
 
-  // findAll récupère maintenant tout le référentiel de matériel
+  // Liste complète utilisée par les écrans d'administration et les formulaires de salle.
   async findAll(): Promise<Materiel[]> {
     return this.prisma.materiel.findMany();
   }
@@ -29,6 +29,7 @@ export class MaterielService {
   }
 
   async update(id: number, data: { nom?: string }): Promise<Materiel> {
+    // Vérification existence avant update pour retourner une erreur claire.
     await this.findOne(id);
     return this.prisma.materiel.update({
       where: { id },
@@ -37,6 +38,7 @@ export class MaterielService {
   }
 
   async remove(id: number): Promise<Materiel> {
+    // Même logique de garde pour éviter un delete silencieux sur ID invalide.
     await this.findOne(id);
     return this.prisma.materiel.delete({
       where: { id },

@@ -4,30 +4,26 @@ export declare class MaterielController {
     constructor(materielService: MaterielService);
     create(body: {
         nom: string;
-        quantiteTotale: number;
-        siteId: number;
     }): Promise<{
-        nom: string;
         id: number;
+        nom: string;
     }>;
     findAll(): Promise<{
-        nom: string;
         id: number;
+        nom: string;
     }[]>;
     findOne(id: number): Promise<{
-        nom: string;
         id: number;
+        nom: string;
     }>;
     update(id: number, body: {
         nom?: string;
-        quantiteTotale?: number;
-        siteId?: number;
     }): Promise<{
-        nom: string;
         id: number;
+        nom: string;
     }>;
     remove(id: number): Promise<{
-        nom: string;
         id: number;
+        nom: string;
     }>;
 }

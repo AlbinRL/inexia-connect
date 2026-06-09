@@ -6,6 +6,7 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async findAll() {
+    // Projection volontaire: on exclut les champs sensibles (motDePasse).
     return this.prisma.utilisateur.findMany({
       select: {
         id: true,
@@ -18,6 +19,7 @@ export class UsersService {
   }
 
   async findOne(id: number) {
+    // findUnique sur la PK puis erreur métier explicite si absent.
     const utilisateur = await this.prisma.utilisateur.findUnique({
       where: { id },
       select: { id: true, nom: true, prenom: true, email: true, role: true, siteId: true },

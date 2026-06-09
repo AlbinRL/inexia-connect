@@ -7,6 +7,7 @@ import { ReservationStatus } from '@prisma/client';
 export class ReservationsService {
   constructor(private prisma: PrismaService) {}
 
+  // Formatte un créneau en heure française pour les messages d'erreur lisibles côté utilisateur.
   private formatReservationSlot(start: Date, end: Date) {
     return `${start.toLocaleString('fr-FR', {
       dateStyle: 'short',
@@ -19,6 +20,7 @@ export class ReservationsService {
     })}`;
   }
 
+  // Nettoyage opportuniste: supprime les annulations déjà terminées pour éviter d'accumuler l'historique inutile.
   private async cleanupExpiredCancelledReservations() {
     await this.prisma.reservation.deleteMany({
       where: {
@@ -30,6 +32,7 @@ export class ReservationsService {
     });
   }
 
+  // Le statut métier affiché dépend à la fois du statut stocké et du temps courant.
   private getCurrentReservationStatus(reservation: {
     status?: ReservationStatus;
     dateDebut: Date;
@@ -51,6 +54,7 @@ export class ReservationsService {
     return 'Terminée';
   }
 
+  // Ajoute un champ calculé "statut" sans modifier le schéma en base.
   private withStatus<
     T extends { status?: ReservationStatus; dateDebut: Date; dateFin: Date },
   >(reservation: T) {
@@ -60,6 +64,7 @@ export class ReservationsService {
     };
   }
 
+  // Reconstitue le début/fin de journée locale pour filtrer les réservations d'une date donnée.
   private getLocalDayBoundsFromDateKey(dateKey: string) {
     const [year, month, day] = dateKey.split('-').map(Number);
     const start = new Date(year, month - 1, day, 0, 0, 0, 0);
@@ -67,6 +72,7 @@ export class ReservationsService {
     return { start, end };
   }
 
+  // Algorithme de balayage temporel pour trouver l'occupation maximale simultanée sur un créneau.
   private getPeakOccupancy(
     reservations: Array<{ dateDebut: Date; dateFin: Date }>,
     start: Date,
@@ -112,6 +118,7 @@ export class ReservationsService {
       throw new BadRequestException('La date de fin doit être après la date de début');
     }
 
+    // On lit salles + réservations dans une même transaction pour garder une photo cohérente des données.
     const [salles, overlappingReservations] = await this.prisma.$transaction([
       this.prisma.salle.findMany({
         select: {
@@ -141,6 +148,7 @@ export class ReservationsService {
       reservationsByRoom.set(reservation.salleId, currentReservations);
     }
 
+    // Pour chaque salle: capacité totale - pic d'occupation = places restantes sur le créneau.
     return salles.map((salle) => {
       const roomReservations = reservationsByRoom.get(salle.id) ?? [];
       const peakOccupancy = this.getPeakOccupancy(roomReservations, start, end);
@@ -184,6 +192,7 @@ export class ReservationsService {
 
     const where: any = {};
 
+    // Filtre appliqué uniquement quand le contrôleur autorise le scope (ex: DIRECTEUR sur son site).
     if (filters?.siteId) {
       where.salle = { siteId: filters.siteId };
     }
@@ -266,7 +275,7 @@ export class ReservationsService {
       throw new BadRequestException('La date de fin doit être après la date de début');
     }
 
-    // On utilise une transaction interactive (tx) au lieu de this.prisma
+    // Transaction interactive: toutes les validations + création passent ensemble, sinon rollback.
     return this.prisma.$transaction(async (tx) => {
       const overlappingUserReservations = await tx.reservation.findMany({
         where: {
@@ -282,6 +291,7 @@ export class ReservationsService {
         },
       });
 
+      // 1) Empêche qu'un utilisateur réserve deux salles sur des horaires qui se chevauchent.
       if (overlappingUserReservations.length > 0) {
         const conflictingReservation = overlappingUserReservations[0];
         const overlapStart = conflictingReservation.dateDebut > start ? conflictingReservation.dateDebut : start;
@@ -301,6 +311,7 @@ export class ReservationsService {
         throw new NotFoundException('Salle introuvable');
       }
 
+      // 2) Vérifie la charge de la salle sur le même créneau.
       const overlappingReservations = await tx.reservation.findMany({
         where: {
           salleId: dto.salleId,
@@ -316,11 +327,12 @@ export class ReservationsService {
 
       const peakOccupancy = this.getPeakOccupancy(overlappingReservations, start, end);
 
+      // 3) Si on dépasse la capacité, on refuse la réservation.
       if (peakOccupancy + 1 > salle.capacite) {
         throw new ConflictException('La salle est déjà complète sur ce créneau');
       }
 
-      // 1. On crée d'abord la ligne principale : la Réservation
+      // 4) Création effective de la réservation quand toutes les règles métier sont validées.
       const reservation = await tx.reservation.create({
         data: {
           dateDebut: start,
@@ -342,6 +354,7 @@ export class ReservationsService {
       throw new NotFoundException('Réservation introuvable');
     }
 
+    // Réservation passée: suppression physique. Réservation future/en cours: annulation logique.
     if (reservation.dateFin <= new Date()) {
       return this.prisma.reservation.delete({
         where: { id },

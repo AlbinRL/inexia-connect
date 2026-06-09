@@ -31,7 +31,7 @@ let SallesService = class SallesService {
             where: { site: { id: siteId } },
             include: {
                 equipements: {
-                    include: { materiel: true }
+                    include: { materiel: true },
                 },
             },
         });

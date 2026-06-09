@@ -51,6 +51,7 @@ const extractArray = <T,>(payload: ApiListResponse<T> | unknown): T[] => {
 };
 
 const normalizeText = (value: string | number) => String(value).trim().toLowerCase();
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function ReservationPage() {
   const { user, isReady } = useAuth();
@@ -71,6 +72,7 @@ export default function ReservationPage() {
   const [reservingSalleId, setReservingSalleId] = useState<number | null>(null);
 
   useEffect(() => {
+    // Garde de navigation côté client: la page nécessite une session authentifiée.
     if (!isReady) {
       return;
     }
@@ -81,14 +83,19 @@ export default function ReservationPage() {
   }, [isReady, user, router]);
 
   useEffect(() => {
+    // Chargement initial des données de référence (sites + salles) utilisées par les filtres et les cartes.
     const loadData = async () => {
       try {
         setLoading(true);
         setError('');
 
+        // Les endpoints /sites et /salles sont protégés: on transmet le JWT en Bearer.
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        const authHeaders = token ? { Authorization: `Bearer ${token}` } : undefined;
+
         const [sitesResponse, sallesResponse] = await Promise.all([
-          fetch('http://localhost:3000/sites'),
-          fetch('http://localhost:3000/salles'),
+          fetch(`${API_BASE}/sites`, { headers: authHeaders }),
+          fetch(`${API_BASE}/salles`, { headers: authHeaders }),
         ]);
 
         if (!sitesResponse.ok) {
@@ -115,11 +122,13 @@ export default function ReservationPage() {
   }, []);
 
   const allRooms = useMemo(() => {
+    // Fallback de compatibilité: si /salles ne renvoie rien, on exploite les salles imbriquées dans /sites.
     const fromSites = sites.flatMap((site) => site.salles ?? []);
     return salles.length > 0 ? salles : fromSites;
   }, [sites, salles]);
 
   const filteredRooms = useMemo(() => {
+    // Filtrage purement front: site sélectionné + recherche texte sur salle et nom de site.
     const term = normalizeText(search);
 
     return allRooms.filter((room) => {
@@ -135,6 +144,7 @@ export default function ReservationPage() {
   }, [allRooms, search, selectedSiteId, sites]);
 
   const selectedSlot = useMemo(() => {
+    // Un créneau n'est valide que si début/fin sont des dates valides et fin > début.
     if (!reservationStart || !reservationEnd) {
       return null;
     }
@@ -150,6 +160,7 @@ export default function ReservationPage() {
   }, [reservationEnd, reservationStart]);
 
   useEffect(() => {
+    // Recalcule la disponibilité à chaque changement de créneau.
     if (!selectedSlot) {
       setAvailabilityByRoomId({});
       setAvailabilityError('');
@@ -169,7 +180,8 @@ export default function ReservationPage() {
           return;
         }
 
-        const availabilityUrl = new URL('http://localhost:3000/reservations/availability');
+        // Le backend attend des ISO strings en query params pour calculer les chevauchements.
+        const availabilityUrl = new URL(`${API_BASE}/reservations/availability`);
         availabilityUrl.searchParams.set('dateDebut', selectedSlot.startDate.toISOString());
         availabilityUrl.searchParams.set('dateFin', selectedSlot.endDate.toISOString());
 
@@ -214,6 +226,7 @@ export default function ReservationPage() {
   }, [selectedSlot]);
 
   const handleReservation = async (salleId: number) => {
+    // Soumission de la réservation au backend qui applique les règles métier (conflits/capacité).
     if (!selectedSlot) {
       setMessage('Choisis une date de début et une date de fin avant de réserver.');
       return;
@@ -229,7 +242,7 @@ export default function ReservationPage() {
       setReservingSalleId(salleId);
       setMessage('');
 
-      const response = await fetch('http://localhost:3000/reservations', {
+      const response = await fetch(`${API_BASE}/reservations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

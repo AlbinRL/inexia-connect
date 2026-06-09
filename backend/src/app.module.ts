@@ -11,6 +11,7 @@ import { MaterielModule } from './materiel/materiel.module';
 
 @Module({
   imports: [
+    // Modules métier exposés via API REST.
     AuthModule,
     SitesModule,
     SallesModule,
@@ -19,6 +20,7 @@ import { MaterielModule } from './materiel/materiel.module';
     MaterielModule,
   ],
   controllers: [AppController],
+  // PrismaService est partagé par injection dans tous les services.
   providers: [AppService, PrismaService],
 })
 export class AppModule {}

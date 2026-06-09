@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -17,11 +21,12 @@ export class SallesService {
   }
 
   findBySite(siteId: number) {
+    // Filtrage par relation site pour limiter les vues directeur/site.
     return this.prisma.salle.findMany({
       where: { site: { id: siteId } },
       include: {
         equipements: {
-          include: { materiel: true }
+          include: { materiel: true },
         },
       },
     });
@@ -44,6 +49,7 @@ export class SallesService {
     siteId: number;
     equipements?: { materielId: number; quantite: number }[];
   }) {
+    // Création salle + éventuels équipements (table de jointure Equipement).
     return this.prisma.salle.create({
       data: {
         nom: data.nom.trim(),
@@ -75,6 +81,7 @@ export class SallesService {
       equipements?: { materielId: number; quantite: number }[];
     },
   ) {
+    // Stratégie simple: si des équipements sont fournis, on remplace intégralement la liste.
     return this.prisma.salle.update({
       where: { id },
       data: {
@@ -102,6 +109,7 @@ export class SallesService {
   }
 
   remove(id: number) {
+    // Suppression protégée: interdit si des réservations existent pour préserver l'historique métier.
     return this.prisma.$transaction(async (tx) => {
       const salle = await tx.salle.findUnique({
         where: { id },
@@ -118,9 +126,12 @@ export class SallesService {
       }
 
       if (salle.reservations.length > 0) {
-        throw new ConflictException('Cette salle a encore des réservations et ne peut pas être supprimée.');
+        throw new ConflictException(
+          'Cette salle a encore des réservations et ne peut pas être supprimée.',
+        );
       }
 
+      // Nettoyage de la table de jointure avant suppression de la salle.
       await tx.equipement.deleteMany({
         where: { salleId: id },
       });
